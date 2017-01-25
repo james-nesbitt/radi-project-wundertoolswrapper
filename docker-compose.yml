@@ -51,7 +51,7 @@ services:
       - source
       - assets
     environment:
-      DNSDOCK_ALIAS: fpm.altiaindustrial.docker
+      DNSDOCK_ALIAS: fpm.%PROJECT%.docker
     links:
       - db:db.app
       - memcache:memcached.app
@@ -65,7 +65,7 @@ services:
       - source
       - assets
     environment:
-      DNSDOCK_ALIAS: www.altiaindustrial.docker
+      DNSDOCK_ALIAS: www.%PROJECT%.docker
     links:
       - fpm:fpm.app
 
