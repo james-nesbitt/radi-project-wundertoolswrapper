@@ -5,6 +5,7 @@ build:
   hostname: "build"
   working_dir: /app
   entrypoint:
+    - /bin/sh
     - /app/build.sh
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
