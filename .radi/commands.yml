@@ -1,0 +1,61 @@
+build:
+  privileged: true
+  description: Build the WT application
+  image: quay.io/wunder/fuzzy-alpine-devshell
+  hostname: "build"
+  working_dir: /app
+  entrypoint:
+    - /app/build.sh
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+
+    - "./:/app/project"
+    - ".radi/tools/wundertools/build.sh:/app/build.sh"
+
+    - "~/.gitconfig:/app/.gitconfig:ro"
+    - "~/.ssh:/app/.ssh:ro"
+
+# Give a ZSH tool shell with access to the project containers
+#
+# @NOTE Requires that you have the project containers built and running
+shell:
+  description: Give a command shell, with access to the application
+  image: quay.io/wunder/fuzzy-alpine-devshell
+  hostname: "shell"
+  working_dir: /app
+  volumes_from:
+    - source
+    - assets
+  volumes:
+    - "!:/app/pwd"
+    - "./:/app/project"
+
+    - "~/.gitconfig:/app/.gitconfig:ro"
+    - "~/.ssh:/app/.ssh:ro"
+  links:
+    - db:db.app
+    - fpm:fpm.app
+    - www:www.app
+
+# Drupal Console
+drupal:
+  description: Run drupal console on the application
+  image: quay.io/wunder/fuzzy-alpine-devshell
+  working_dir: /app/web
+  entrypoint:
+    - /app/vendor/bin/drupal
+    - --ansi
+  volumes_from:
+    - source
+    - assets
+  volumes:
+    - "./backup:/app/backup"
+    - "./settings/drush:/app/.drush"
+    - "./settings/drupal-console:/app/.drupal"
+    - "./source/drupal/conf/composer.json:/app/.composer.json"
+    - "./source/drupal/conf/composer.lock:/app/.composer.lock"
+
+    - "~/.gitconfig:/app/.gitconfig:ro"
+    - "~/.ssh:/app/.ssh:ro"
+  links:
+    - db:db.app

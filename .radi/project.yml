@@ -1,0 +1,15 @@
+Components:
+
+  # Base implmentation is a local project
+  - Type: local
+    Implementations:
+      - config
+      - setting
+      - project
+      - security
+
+  # Also use the local API for commands and orchestration
+  - Type: local
+    Implementations:
+      - orchestrate
+      - command

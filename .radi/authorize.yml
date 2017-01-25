@@ -1,0 +1,5 @@
+Rules:
+
+  - Id: Default
+    Operation: "*"
+    Authorize: Allow

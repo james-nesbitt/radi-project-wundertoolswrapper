@@ -1,0 +1,81 @@
+
+version: "2"
+
+services:
+
+  source:
+    image: "quay.io/wunder/client-%PROJECT%-source"
+    command:
+      - /bin/true
+    volumes:
+      # Allow local volume binding overrides
+      - "./drupal/current/web:/app/web"
+      - "./drupal/current/vendor:/app/vendor"
+      - "./drupal/config/sync:/app/config"
+
+  assets:
+    image: quay.io/wunder/fuzzy-alpine-base
+    command:
+      - /bin/true
+    volumes:
+      # Keep assets outside of the image, you could map these to
+      # local paths if you want to keep assets locally.
+      - "/app/web/sites/default/files"
+      - "/app/private"
+
+  ####
+  # Servers
+  #
+
+  ####
+  # DB node
+  #
+  db:
+    image: quay.io/wunder/fuzzy-alpine-mariadb
+
+  ####
+  # MemCacheD
+  #
+  memcache:
+    image: quay.io/wunder/fuzzy-alpine-memcached
+
+  ####
+  # FPM node
+  #
+  # @NOTE in production, the source volumes should be source:ro
+  #  but local devs may need to write to settings.php
+
+  fpm:
+    image: quay.io/wunder/fuzzy-alpine-php-dev
+    volumes_from:
+      - source
+      - assets
+    environment:
+      DNSDOCK_ALIAS: fpm.altiaindustrial.docker
+    links:
+      - db:db.app
+      - memcache:memcached.app
+
+  ####
+  # WWW node
+  #
+  www:
+    image: quay.io/wunder/fuzzy-alpine-nginx-pagespeed-drupal
+    volumes_from:
+      - source
+      - assets
+    environment:
+      DNSDOCK_ALIAS: www.altiaindustrial.docker
+    links:
+      - fpm:fpm.app
+
+  ####
+  # Static cache service
+  #
+  varnish:
+    image: quay.io/wunder/fuzzy-alpine-varnish
+    environment:
+      DNSDOCK_ALIAS: wundertest.docker
+      VARNISH_BACKEND_HOST: backend.app
+    links:
+      - www:backend.app
