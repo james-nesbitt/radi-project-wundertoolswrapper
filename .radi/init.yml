@@ -5,6 +5,7 @@
     
       - Id: Default
         Operation: "*"
+        Authorize: Allow
     
 - Type: File
   path: .radi/commands.yml
@@ -69,6 +70,7 @@
         - "~/.gitconfig:/app/.gitconfig:ro"
         - "~/.ssh:/app/.ssh:ro"
       links:
+        - db:db.app
     
 - Type: File
   path: .radi/project.yml
@@ -87,11 +89,12 @@
       - Type: local
         Implementations:
           - orchestrate
+          - command
     
 - Type: File
   path: .radi/settings.yml
   Contents: |2
-    Project: %PROJECT%
+    Project: "%PROJECT%"
     
 - Type: File
   path: .radi/tools/wundertools/Dockerfile
@@ -326,7 +329,6 @@
     This will likey be automated next, but there are only a few instances, so it is usable
     already.
     
-    
 - Type: File
   path: docker-compose.yml
   Contents: |2
@@ -410,4 +412,4 @@
           DNSDOCK_ALIAS: wundertest.docker
           VARNISH_BACKEND_HOST: backend.app
         links:
-    
+          - www:backend.app

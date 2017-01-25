@@ -45,4 +45,3 @@ across all of the added files with a string name for the project.
 
 This will likey be automated next, but there are only a few instances, so it is usable
 already.
-
