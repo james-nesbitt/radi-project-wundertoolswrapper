@@ -5,10 +5,10 @@
 #   - build a docker image with web source
 #
 # Usage:
-#   [suggested] --no-composer : don't run the composer part of the build (just build the image)
-#   [suggested] --composer-update : run composer update instead of just composer install
-#   [suggested] --no-image : don't build the docker image (just run composer)
-#
+#   --no-composer : don't run the composer part of the build (just build the image)
+#   --composer-update : run composer update instead of just composer install
+#   --no-image-build : don't build the docker image (just run composer)
+#   --push-image : docker push the image
 #
 
 echo "----------------------------------------------
@@ -33,9 +33,14 @@ do
 		COMPOSER_COMMAND="update"
 		;;
 
-	--no-image)   
+	--no-image-build)   
 		echo " -> DISABLING DOCKER IMAGE BUILD" 
 		RUN_IMAGEBUILD="no"
+		;;
+
+	--push-image)   
+		echo " -> PUSHING DOCKER IMAGE BUILD" 
+		RUN_IMAGEPUSH="yes"
 		;;
 
 	esac
@@ -45,14 +50,19 @@ echo " "
 
 ##### Some configurations #####################################################
 
-IMAGEROOT="quay.io/wunder"
-IMAGECLIENT="%PROJECT%"
+PROJECT="${PROJECT:-wundertools}"
+
+DOCKERREPO="${DOCKERREPO:-quay.io/}"
+IMAGEROOT="${IMAGEROOT:-wunder/project-}"
+
+[ -z "${IMAGENAME}" ] && IMAGENAME="${DOCKERREPO}${IMAGEROOT}${PROJECT}-source"
 
 PROJECTROOT="/app/project"
 DRUPALROOT="${PROJECTROOT}/drupal"
 
 RUN_COMPOSER="${RUN_COMPOSER:-yes}"
 RUN_IMAGEBUILD="${RUN_IMAGEBUILD:-yes}"
+RUN_IMAGEPUSH="${RUN_IMAGEPUSH:-no}"
 
 COMPOSER_COMMAND="${COMPOSER_COMMAND:-install}"
 
@@ -128,9 +138,6 @@ if [ "${RUN_IMAGEBUILD}" = "yes" ];then
 	echo "--> Temporarily copying Dockerfile to project root: ${PROJECTROOT}/.radi/tools/wundertools/Dockerfile => ${PROJECTROOT}/Dockerfile"
 	cp "${PROJECTROOT}/.radi/tools/wundertools/Dockerfile" "${PROJECTROOT}/Dockerfile"
 
-	# common settings
-	IMAGENAME="${IMAGEROOT}/client-${IMAGECLIENT}-source"
-
 	# run the docker build
 	echo "--> building docker image for source code [production safe]"
 	(sudo docker build --tag "${IMAGENAME}" "${PROJECTROOT}")
@@ -138,6 +145,22 @@ if [ "${RUN_IMAGEBUILD}" = "yes" ];then
 
 	# remove the temp Dockerfile position
 	rm "${PROJECTROOT}/Dockerfile"
+
+fi
+
+##### PUSH IMAGE TO DOCKER REPOSITORY #########################################
+
+
+if [ "${RUN_IMAGEPUSH}" = "yes" ];then
+
+	echo "----- Pushing Docker image -----"
+
+	echo ">> Logging into docker repository: ${DOCKERREPO}"
+	sudo docker login "${DOCKERREPO}"
+
+	# run the docker build
+	(sudo docker push "${IMAGENAME}")
+	echo "--> image pushed: ${IMAGENAME}"
 
 fi
 
