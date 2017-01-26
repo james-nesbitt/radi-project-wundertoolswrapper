@@ -438,7 +438,7 @@
       www:
         image: quay.io/wunder/fuzzy-alpine-nginx-pagespeed-drupal
         ports:
-          8081:80
+          - 8081:80
         volumes_from:
           - source
           - assets
@@ -453,7 +453,7 @@
       varnish:
         image: quay.io/wunder/fuzzy-alpine-varnish
         ports:
-          8080:80
+          - 8080:80
         environment:
           DNSDOCK_ALIAS: wundertest.docker
           VARNISH_BACKEND_HOST: backend.app
