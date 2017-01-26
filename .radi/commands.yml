@@ -4,6 +4,9 @@ build:
   image: quay.io/wunder/fuzzy-alpine-devshell
   hostname: "build"
   working_dir: /app
+  environment:
+    PROJECT: "%PROJECT%"
+    DOCKERREPO: quay.io/
   entrypoint:
     - /bin/sh
     - /app/build.sh
