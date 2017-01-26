@@ -6,73 +6,7 @@
       - Id: Default
         Operation: "*"
         Authorize: Allow
-    
-- Type: File
-  path: .radi/commands.yml
-  Contents: |2
-    build:
-      privileged: true
-      description: Build the WT application
-      image: quay.io/wunder/fuzzy-alpine-devshell
-      hostname: "build"
-      working_dir: /app
-      entrypoint:
-        - /bin/sh
-        - /app/build.sh
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-    
-        - "./:/app/project"
-        - ".radi/tools/wundertools/build.sh:/app/build.sh"
-    
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
-    
-    # Give a ZSH tool shell with access to the project containers
-    #
-    # @NOTE Requires that you have the project containers built and running
-    shell:
-      description: Give a command shell, with access to the application
-      image: quay.io/wunder/fuzzy-alpine-devshell
-      hostname: "shell"
-      working_dir: /app
-      volumes_from:
-        - source
-        - assets
-      volumes:
-        - "!:/app/pwd"
-        - "./:/app/project"
-    
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
-      links:
-        - db:db.app
-        - fpm:fpm.app
-        - www:www.app
-    
-    # Drupal Console
-    drupal:
-      description: Run drupal console on the application
-      image: quay.io/wunder/fuzzy-alpine-devshell
-      working_dir: /app/web
-      entrypoint:
-        - /app/vendor/bin/drupal
-        - --ansi
-      volumes_from:
-        - source
-        - assets
-      volumes:
-        - "./backup:/app/backup"
-        - "./settings/drush:/app/.drush"
-        - "./settings/drupal-console:/app/.drupal"
-        - "./source/drupal/conf/composer.json:/app/.composer.json"
-        - "./source/drupal/conf/composer.lock:/app/.composer.lock"
-    
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
-      links:
-        - db:db.app
-    
+        
 - Type: File
   path: .radi/project.yml
   Contents: |2
@@ -91,12 +25,12 @@
         Implementations:
           - orchestrate
           - command
-    
+        
 - Type: File
   path: .radi/settings.yml
   Contents: |2
     Project: "%PROJECT%"
-    
+        
 - Type: File
   path: .radi/tools/wundertools/Dockerfile
   Contents: |2
@@ -130,7 +64,7 @@
     ADD drupal/conf/services.yml /app/web/sites/default/services.yml
     ADD drupal/conf/settings.php /app/web/sites/default/settings.php
     ADD drupal/conf/settings.local.php /app/web/sites/default/settings.local.php
-    
+        
 - Type: File
   path: .radi/tools/wundertools/build.sh
   Contents: |2
@@ -141,10 +75,10 @@
     #   - build a docker image with web source
     #
     # Usage:
-    #   [suggested] --no-composer : don't run the composer part of the build (just build the image)
-    #   [suggested] --composer-update : run composer update instead of just composer install
-    #   [suggested] --no-image : don't build the docker image (just run composer)
-    #
+    #   --no-composer : don't run the composer part of the build (just build the image)
+    #   --composer-update : run composer update instead of just composer install
+    #   --no-image-build : don't build the docker image (just run composer)
+    #   --push-image : docker push the image
     #
     
     echo "----------------------------------------------
@@ -169,9 +103,14 @@
     		COMPOSER_COMMAND="update"
     		;;
     
-    	--no-image)   
+    	--no-image-build)   
     		echo " -> DISABLING DOCKER IMAGE BUILD" 
     		RUN_IMAGEBUILD="no"
+    		;;
+    
+    	--push-image)   
+    		echo " -> PUSHING DOCKER IMAGE BUILD" 
+    		RUN_IMAGEPUSH="yes"
     		;;
     
     	esac
@@ -181,14 +120,19 @@
     
     ##### Some configurations #####################################################
     
-    IMAGEROOT="quay.io/wunder"
-    IMAGECLIENT="%PROJECT%"
+    PROJECT="${PROJECT:-wundertools}"
+    
+    DOCKERREPO="${DOCKERREPO:-quay.io/}"
+    IMAGEROOT="${IMAGEROOT:-wunder/project-}"
+    
+    [ -z "${IMAGENAME}" ] && IMAGENAME="${DOCKERREPO}${IMAGEROOT}${PROJECT}-source"
     
     PROJECTROOT="/app/project"
     DRUPALROOT="${PROJECTROOT}/drupal"
     
     RUN_COMPOSER="${RUN_COMPOSER:-yes}"
     RUN_IMAGEBUILD="${RUN_IMAGEBUILD:-yes}"
+    RUN_IMAGEPUSH="${RUN_IMAGEPUSH:-no}"
     
     COMPOSER_COMMAND="${COMPOSER_COMMAND:-install}"
     
@@ -264,9 +208,6 @@
     	echo "--> Temporarily copying Dockerfile to project root: ${PROJECTROOT}/.radi/tools/wundertools/Dockerfile => ${PROJECTROOT}/Dockerfile"
     	cp "${PROJECTROOT}/.radi/tools/wundertools/Dockerfile" "${PROJECTROOT}/Dockerfile"
     
-    	# common settings
-    	IMAGENAME="${IMAGEROOT}/client-${IMAGECLIENT}-source"
-    
     	# run the docker build
     	echo "--> building docker image for source code [production safe]"
     	(sudo docker build --tag "${IMAGENAME}" "${PROJECTROOT}")
@@ -277,8 +218,108 @@
     
     fi
     
-    echo ">> Build is finished"
+    ##### PUSH IMAGE TO DOCKER REPOSITORY #########################################
     
+    
+    if [ "${RUN_IMAGEPUSH}" = "yes" ];then
+    
+    	echo "----- Pushing Docker image -----"
+    
+    	echo ">> Logging into docker repository: ${DOCKERREPO}"
+    	sudo docker login "${DOCKERREPO}"
+    
+    	# run the docker build
+    	(sudo docker push "${IMAGENAME}")
+    	echo "--> image pushed: ${IMAGENAME}"
+    
+    fi
+    
+    echo ">> Build is finished"
+        
+- Type: File
+  path: .radi/tools/wundertools/README.md
+  Contents: |2
+    WUNDERTOOLS
+    -----------
+    
+    This folder hols tools that are used to integrate the wundertools projects
+    into the radi implementation.
+    
+    Primarily, the tools exist to build a source code image from the WT project
+    which can then be used by any docker/docker-compose implementation.
+    
+    
+    > See the `build` command in the .radio/commands.yml
+        
+- Type: File
+  path: .radi/commands.yml
+  Contents: |2
+    build:
+      privileged: true
+      description: Build the WT application
+      image: quay.io/wunder/fuzzy-alpine-devshell
+      hostname: "build"
+      working_dir: /app
+      environment:
+        PROJECT: "%PROJECT%"
+        DOCKERREPO: quay.io/
+      entrypoint:
+        - /bin/sh
+        - /app/build.sh
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+    
+        - "./:/app/project"
+        - ".radi/tools/wundertools/build.sh:/app/build.sh"
+    
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
+    
+    # Give a ZSH tool shell with access to the project containers
+    #
+    # @NOTE Requires that you have the project containers built and running
+    shell:
+      description: Give a command shell, with access to the application
+      image: quay.io/wunder/fuzzy-alpine-devshell
+      hostname: "shell"
+      working_dir: /app
+      volumes_from:
+        - source
+        - assets
+      volumes:
+        - "!:/app/pwd"
+        - "./:/app/project"
+    
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
+      links:
+        - db:db.app
+        - fpm:fpm.app
+        - www:www.app
+    
+    # Drupal Console
+    drupal:
+      description: Run drupal console on the application
+      image: quay.io/wunder/fuzzy-alpine-devshell
+      working_dir: /app/web
+      entrypoint:
+        - /app/vendor/bin/drupal
+        - --ansi
+      volumes_from:
+        - source
+        - assets
+      volumes:
+        - "./backup:/app/backup"
+        - "./settings/drush:/app/.drush"
+        - "./settings/drupal-console:/app/.drupal"
+        - "./source/drupal/conf/composer.json:/app/.composer.json"
+        - "./source/drupal/conf/composer.lock:/app/.composer.lock"
+    
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
+      links:
+        - db:db.app
+        
 - Type: File
   path: README.md
   Contents: |2
@@ -329,7 +370,7 @@
     
     This will likey be automated next, but there are only a few instances, so it is usable
     already.
-    
+        
 - Type: File
   path: docker-compose.yml
   Contents: |2
@@ -396,6 +437,8 @@
       #
       www:
         image: quay.io/wunder/fuzzy-alpine-nginx-pagespeed-drupal
+        ports:
+          8081:80
         volumes_from:
           - source
           - assets
@@ -409,8 +452,11 @@
       #
       varnish:
         image: quay.io/wunder/fuzzy-alpine-varnish
+        ports:
+          8080:80
         environment:
           DNSDOCK_ALIAS: wundertest.docker
           VARNISH_BACKEND_HOST: backend.app
         links:
           - www:backend.app
+        
