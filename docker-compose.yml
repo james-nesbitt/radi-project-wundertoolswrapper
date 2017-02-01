@@ -79,7 +79,7 @@ services:
     ports:
       - 8080:80
     environment:
-      DNSDOCK_ALIAS: wundertest.docker
+      DNSDOCK_ALIAS: %PROJECT%.docker
       VARNISH_BACKEND_HOST: backend.app
     links:
       - www:backend.app

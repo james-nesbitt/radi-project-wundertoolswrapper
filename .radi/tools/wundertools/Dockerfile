@@ -29,3 +29,4 @@ ADD drupal/conf/services.yml /app/web/sites/default/services.yml
 ADD drupal/conf/settings.php /app/web/sites/default/settings.php
 ADD drupal/conf/radi.settings.php /app/web/sites/default/settings.local.php
 ADD drupal/conf/radi.services.yml /app/web/sites/default/services.local.yml
+    
