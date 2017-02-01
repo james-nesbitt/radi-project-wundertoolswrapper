@@ -8,6 +8,75 @@
         Authorize: Allow
         
 - Type: File
+  path: .radi/commands.yml
+  Contents: |2
+    build:
+      privileged: true
+      description: Build the WT application
+      image: quay.io/wunder/fuzzy-alpine-devshell
+      hostname: "build"
+      working_dir: /app
+      environment:
+        PROJECT: "%PROJECT%"
+        DOCKERREPO: quay.io/
+      entrypoint:
+        - /bin/sh
+        - /app/build.sh
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+    
+        - "./:/app/project"
+        - ".radi/tools/wundertools/build.sh:/app/build.sh"
+    
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
+    
+    # Give a ZSH tool shell with access to the project containers
+    #
+    # @NOTE Requires that you have the project containers built and running
+    shell:
+      description: Give a command shell, with access to the application
+      image: quay.io/wunder/fuzzy-alpine-devshell
+      hostname: "shell"
+      working_dir: /app
+      volumes_from:
+        - source
+        - assets
+      volumes:
+        - "!:/app/pwd"
+        - "./:/app/project"
+    
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
+      links:
+        - db:db.app
+        - fpm:fpm.app
+        - www:www.app
+    
+    # Drupal Console
+    drupal:
+      description: Run drupal console on the application
+      image: quay.io/wunder/fuzzy-alpine-devshell
+      working_dir: /app/web
+      entrypoint:
+        - /app/vendor/bin/drupal
+        - --ansi
+      volumes_from:
+        - source
+        - assets
+      volumes:
+        - "./backup:/app/backup"
+        - "./settings/drush:/app/.drush"
+        - "./settings/drupal-console:/app/.drupal"
+        - "./source/drupal/conf/composer.json:/app/.composer.json"
+        - "./source/drupal/conf/composer.lock:/app/.composer.lock"
+    
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
+      links:
+        - db:db.app
+        
+- Type: File
   path: .radi/project.yml
   Contents: |2
     Components:
@@ -63,7 +132,23 @@
     # Add Drupal site settings
     ADD drupal/conf/services.yml /app/web/sites/default/services.yml
     ADD drupal/conf/settings.php /app/web/sites/default/settings.php
-    ADD drupal/conf/settings.local.php /app/web/sites/default/settings.local.php
+    ADD drupal/conf/radi.settings.php /app/web/sites/default/settings.local.php
+    ADD drupal/conf/radi.services.yml /app/web/sites/default/services.local.yml
+        
+- Type: File
+  path: .radi/tools/wundertools/README.md
+  Contents: |2
+    WUNDERTOOLS
+    -----------
+    
+    This folder hols tools that are used to integrate the wundertools projects
+    into the radi implementation.
+    
+    Primarily, the tools exist to build a source code image from the WT project
+    which can then be used by any docker/docker-compose implementation.
+    
+    
+    > See the `build` command in the .radio/commands.yml
         
 - Type: File
   path: .radi/tools/wundertools/build.sh
@@ -237,90 +322,6 @@
     echo ">> Build is finished"
         
 - Type: File
-  path: .radi/tools/wundertools/README.md
-  Contents: |2
-    WUNDERTOOLS
-    -----------
-    
-    This folder hols tools that are used to integrate the wundertools projects
-    into the radi implementation.
-    
-    Primarily, the tools exist to build a source code image from the WT project
-    which can then be used by any docker/docker-compose implementation.
-    
-    
-    > See the `build` command in the .radio/commands.yml
-        
-- Type: File
-  path: .radi/commands.yml
-  Contents: |2
-    build:
-      privileged: true
-      description: Build the WT application
-      image: quay.io/wunder/fuzzy-alpine-devshell
-      hostname: "build"
-      working_dir: /app
-      environment:
-        PROJECT: "%PROJECT%"
-        DOCKERREPO: quay.io/
-      entrypoint:
-        - /bin/sh
-        - /app/build.sh
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-    
-        - "./:/app/project"
-        - ".radi/tools/wundertools/build.sh:/app/build.sh"
-    
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
-    
-    # Give a ZSH tool shell with access to the project containers
-    #
-    # @NOTE Requires that you have the project containers built and running
-    shell:
-      description: Give a command shell, with access to the application
-      image: quay.io/wunder/fuzzy-alpine-devshell
-      hostname: "shell"
-      working_dir: /app
-      volumes_from:
-        - source
-        - assets
-      volumes:
-        - "!:/app/pwd"
-        - "./:/app/project"
-    
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
-      links:
-        - db:db.app
-        - fpm:fpm.app
-        - www:www.app
-    
-    # Drupal Console
-    drupal:
-      description: Run drupal console on the application
-      image: quay.io/wunder/fuzzy-alpine-devshell
-      working_dir: /app/web
-      entrypoint:
-        - /app/vendor/bin/drupal
-        - --ansi
-      volumes_from:
-        - source
-        - assets
-      volumes:
-        - "./backup:/app/backup"
-        - "./settings/drush:/app/.drush"
-        - "./settings/drupal-console:/app/.drupal"
-        - "./source/drupal/conf/composer.json:/app/.composer.json"
-        - "./source/drupal/conf/composer.lock:/app/.composer.lock"
-    
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
-      links:
-        - db:db.app
-        
-- Type: File
   path: README.md
   Contents: |2
     # radi WT wrapper
@@ -459,4 +460,123 @@
           VARNISH_BACKEND_HOST: backend.app
         links:
           - www:backend.app
+        
+- Type: File
+  path: drupal/conf/radi.settings.php
+  Contents: |2
+    <?php
+    
+    /**
+     * INSTALLATION SETTINGS
+     *
+     * You will want to comment these out if you need to install again
+     */
+    
+    $databases = array (
+      'default' => 
+      array (
+        'default' => 
+        array (
+          'database' => 'app',
+          'username' => 'app',
+          'password' => 'app',
+          'host'     => 'db.app',
+          'port'     => '',
+          'driver'   => 'mysqli',
+          'prefix'   => '',
+        ),
+      ),
+    );
+    
+    // We assume that you performed a standard or config-import install
+    $settings['install_profile'] = 'standard';
+    
+    // We assume that the sync folder is mounted at /app/config
+    $config_directories['sync'] = '/app/config';
+    
+    /**
+     * General settings for developers
+     */
+    
+    // Use this to get rid of those warnings
+    // $settings['trusted_host_patterns'] = array(
+    //   '\.docker$',
+    // );
+    
+    $settings['file_temporary_path'] = '/tmp';
+    
+    /**
+     * Assertions.
+     *
+     * The Drupal project primarily uses runtime assertions to enforce the
+     * expectations of the API by failing when incorrect calls are made by code
+     * under development.
+     *
+     * @see http://php.net/assert
+     * @see https://www.drupal.org/node/2492225
+     *
+     * If you are using PHP 7.0 it is strongly recommended that you set
+     * zend.assertions=1 in the PHP.ini file (It cannot be changed from .htaccess
+     * or runtime) on development machines and to 0 in production.
+     *
+     * @see https://wiki.php.net/rfc/expectations
+     */
+    assert_options(ASSERT_ACTIVE, TRUE);
+    \Drupal\Component\Assertion\Handle::register();
+    
+    /**
+     * Enable local development services.
+     */
+    if (file_exists(__DIR__.'/local.services.yml')) {
+      $settings['container_yamls'][] = __DIR__.'/local.services.yml';
+    }
+    
+    /**
+     * Show all error messages, with backtrace information.
+     *
+     * In case the error level could not be fetched from the database, as for
+     * example the database connection failed, we rely only on this value.
+     */
+    $config['system.logging']['error_level'] = 'verbose';
+    
+    /**
+     * Disable CSS and JS aggregation.
+     */
+    $config['system.performance']['css']['preprocess'] = FALSE;
+    $config['system.performance']['js']['preprocess'] = FALSE;
+    
+    /**
+     * Disable some caching if needed.
+     */
+    //$settings['cache']['bins']['default'] = 'cache.backend.null';
+    //$settings['cache']['bins']['render'] = 'cache.backend.null';
+    //$settings['cache']['bins']['dynamic_page_cache'] = 'cache.backend.null';
+    
+    /**
+     * Allow test modules and themes to be installed.
+     */
+    $settings['extension_discovery_scan_tests'] = TRUE;
+    
+    /**
+     * Enable access to rebuild.php.
+     */
+    $settings['rebuild_access'] = TRUE;
+    
+    /**
+     * Skip file system permissions hardening.
+     */
+    $settings['skip_permissions_hardening'] = TRUE;
+        
+- Type: File
+  path: drupal/conf/radi.services.yml
+  Contents: |2
+    # Local development services.
+    #
+    # @NOTE these are copied from development.services.yml
+    #
+    # To activate this feature, follow the instructions at the top of the
+    # 'example.settings.local.php' file, which sits next to this file.
+    services:
+      cache.backend.null:
+        class: Drupal\Core\Cache\NullBackendFactory
         
