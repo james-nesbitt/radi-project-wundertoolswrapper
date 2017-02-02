@@ -16,7 +16,7 @@ $databases = array (
       'password' => 'app',
       'host'     => 'db.app',
       'port'     => '',
-      'driver'   => 'mysqli',
+      'driver'   => 'mysql',
       'prefix'   => '',
     ),
   ),
