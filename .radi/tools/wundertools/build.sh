@@ -74,7 +74,6 @@ if [ "${RUN_COMPOSER}" = "yes" ]; then
 
 	echo "----- Using composer to generate full project source -----"
 
-
 	BUILDROOT="${DRUPALROOT}/current"
 
 	echo "--> configured
@@ -104,7 +103,8 @@ if [ "${RUN_COMPOSER}" = "yes" ]; then
 	# place during docker build, and so isn't needed in current.
 	####
 
-	# Creating mount space for custom modules/themes"
+	# Add project code and conf
+	# echo "--> Adding in custom modules/themes"
 	mkdir -p "${BUILDROOT}/web/modules/custom"
 	# cp -R "${DRUPALROOT}/code/modules/custom" "${BUILDROOT}/web/modules/custom"
 	mkdir -p "${BUILDROOT}/web/themes/custom"
@@ -122,8 +122,8 @@ if [ "${RUN_COMPOSER}" = "yes" ]; then
 	#mkdir -p "${BUILDROOT}/web/sites/default"
 	cp -R "${DRUPALROOT}/conf/services.yml" "${BUILDROOT}/web/sites/default/services.yml"
 	cp -R "${DRUPALROOT}/conf/settings.php" "${BUILDROOT}/web/sites/default/settings.php"
-	cp -R "${DRUPALROOT}/conf/radi.settings.php" "${BUILDROOT}/web/sites/default/settings.local.php"
 	cp -R "${DRUPALROOT}/conf/radi.services.yml" "${BUILDROOT}/web/sites/default/services.local.yml"
+	cp -R "${DRUPALROOT}/conf/radi.settings.php" "${BUILDROOT}/web/sites/default/settings.local.php"
 	# rm "${BUILDROOT}/web/sites/default/default.*"
 	# rm "${BUILDROOT}/web/sites/example.*"
 
@@ -166,4 +166,3 @@ if [ "${RUN_IMAGEPUSH}" = "yes" ];then
 fi
 
 echo ">> Build is finished"
-
