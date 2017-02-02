@@ -12,6 +12,10 @@ services:
       - "./drupal/current/web:/app/web"
       - "./drupal/current/vendor:/app/vendor"
       - "./drupal/config/sync:/app/config"
+      - "./drupal/code/modules/custom:/app/web/modules/custom"
+      - "./drupal/code/themes/custom:/app/web/themes/custom"
+      - "./drupal/code/profiles/custom:/app/web/profiles/custom"
+      # - "./drupal/code/libraries/custom:/app/web/libraries/custom"
 
   assets:
     image: quay.io/wunder/fuzzy-alpine-base
@@ -79,7 +83,7 @@ services:
     ports:
       - 8080:80
     environment:
-      DNSDOCK_ALIAS: wundertest.docker
+      DNSDOCK_ALIAS: %PROJECT%.docker
       VARNISH_BACKEND_HOST: backend.app
     links:
       - www:backend.app

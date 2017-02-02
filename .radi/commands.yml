@@ -6,7 +6,9 @@ build:
   working_dir: /app
   environment:
     PROJECT: "%PROJECT%"
-    DOCKERREPO: quay.io/
+    PROJECTROOT: "/app/project"
+    BUILDROOT: "/app/project/drupal/current"
+    DOCKERREPO: "quay.io/"
   entrypoint:
     - /bin/sh
     - /app/build.sh

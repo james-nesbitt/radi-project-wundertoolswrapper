@@ -17,29 +17,28 @@ Commencing WunderTools -> Radi build
 
 ##### Interpret arguments #####################################################
 
-
 sflag="-s"
 for arg in "$@"
 do
 	case "$arg" in
 
-	--no-composer)   
-		echo " -> DISABLING COMPOSER RUN" 
+	--no-composer)
+		echo " -> DISABLING COMPOSER RUN"
 		RUN_COMPOSER="no"
 		;;
 
-	--composer-update)   
-		echo " -> COMPOSER WILL UPDATE INSTEAD OF INSTALL" 
+	--composer-update)
+		echo " -> COMPOSER WILL UPDATE INSTEAD OF INSTALL"
 		COMPOSER_COMMAND="update"
 		;;
 
-	--no-image-build)   
-		echo " -> DISABLING DOCKER IMAGE BUILD" 
+	--no-image-build)
+		echo " -> DISABLING DOCKER IMAGE BUILD"
 		RUN_IMAGEBUILD="no"
 		;;
 
-	--push-image)   
-		echo " -> PUSHING DOCKER IMAGE BUILD" 
+	--push-image)
+		echo " -> PUSHING DOCKER IMAGE BUILD"
 		RUN_IMAGEPUSH="yes"
 		;;
 
@@ -75,7 +74,6 @@ if [ "${RUN_COMPOSER}" = "yes" ]; then
 
 	echo "----- Using composer to generate full project source -----"
 
-	
 	BUILDROOT="${DRUPALROOT}/current"
 
 	echo "--> configured
@@ -109,9 +107,11 @@ if [ "${RUN_COMPOSER}" = "yes" ]; then
 	# echo "--> Adding in custom modules/themes"
 	mkdir -p "${BUILDROOT}/web/modules/custom"
 	# cp -R "${DRUPALROOT}/code/modules/custom" "${BUILDROOT}/web/modules/custom"
-	mkdir -p "${BUILDROOT}/web/modules/custom"
+	mkdir -p "${BUILDROOT}/web/themes/custom"
 	# cp -R "${DRUPALROOT}/code/themes/custom" "${BUILDROOT}/web/themes/custom"
+	mkdir -p "${BUILDROOT}/web/profiles/custom"
 	#ADD drupal/code/profiles/custom /app/web/profiles/custom
+	mkdir -p "${BUILDROOT}/web/libraries/custom"
 	#ADD drupal/code/libraries/custom /app/web/libraries/custom
 
 	# Prepare for files (creating the folder now fixes file permissions when bound)
@@ -122,7 +122,8 @@ if [ "${RUN_COMPOSER}" = "yes" ]; then
 	#mkdir -p "${BUILDROOT}/web/sites/default"
 	cp -R "${DRUPALROOT}/conf/services.yml" "${BUILDROOT}/web/sites/default/services.yml"
 	cp -R "${DRUPALROOT}/conf/settings.php" "${BUILDROOT}/web/sites/default/settings.php"
-	cp -R "${DRUPALROOT}/conf/settings.local.php" "${BUILDROOT}/web/sites/default/settings.local.php"
+	cp -R "${DRUPALROOT}/conf/radi.services.yml" "${BUILDROOT}/web/sites/default/services.local.yml"
+	cp -R "${DRUPALROOT}/conf/radi.settings.php" "${BUILDROOT}/web/sites/default/settings.local.php"
 	# rm "${BUILDROOT}/web/sites/default/default.*"
 	# rm "${BUILDROOT}/web/sites/example.*"
 
