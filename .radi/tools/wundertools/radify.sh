@@ -119,7 +119,6 @@ echo "
 
 Intialization complete
 
-
 ##### Finalization
 
 Now that the project initialization is complete, you should be able to run radi'
