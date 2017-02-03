@@ -9,9 +9,6 @@ radi right away.
 
 ## What is added
 
-### a number of files used to configure radi
-
-
 1. standard docker local environment configuration:
 
    docker-compose.yml : compose file for a project
