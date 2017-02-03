@@ -6,7 +6,8 @@
       - Id: Default
         Operation: "*"
         Authorize: Allow
-
+        
+        
 - Type: File
   path: .radi/project.yml
   Contents: |2
@@ -25,7 +26,7 @@
         Implementations:
           - orchestrate
           - command
- 
+         
 - Type: File
   path: .radi/settings.yml
   Contents: |2
@@ -44,11 +45,9 @@
     Primarily, the tools exist to build a source code image from the WT project
     which can then be used by any docker/docker-compose implementation.
     
+    > See the commands in the .radi/environments/initialize/commands.yml
     
-    > See the `build` command in the .radio/commands.yml
-        
-        
-        
+
 - Type: File
   path: .radi/tools/wundertools/build.sh
   Contents: |2
@@ -388,7 +387,7 @@
       hostname: "build"
       working_dir: /app/project/
       environment:
-        PROJECT: "wtest"
+        PROJECT: "%PROJECT%"
         PROJECTROOT: "/app/project"
         DOCKERREPO: "quay.io/"
       entrypoint:
@@ -429,7 +428,7 @@
     
     # Drupal Console
     drush:
-      description: Run drupal console on the application
+      description: Run drush on the application
       image: quay.io/wunder/fuzzy-alpine-devshell
       working_dir: /app/web
       entrypoint:

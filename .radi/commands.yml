@@ -48,7 +48,7 @@ build-image:
   hostname: "build"
   working_dir: /app/project/
   environment:
-    PROJECT: "wtest"
+    PROJECT: "%PROJECT%"
     PROJECTROOT: "/app/project"
     DOCKERREPO: "quay.io/"
   entrypoint:
@@ -89,7 +89,7 @@ drupal:
 
 # Drupal Console
 drush:
-  description: Run drupal console on the application
+  description: Run drush on the application
   image: quay.io/wunder/fuzzy-alpine-devshell
   working_dir: /app/web
   entrypoint:
