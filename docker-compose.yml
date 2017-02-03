@@ -4,13 +4,14 @@ version: "2"
 services:
 
   source:
-    image: "quay.io/wunder/client-%PROJECT%-source"
+    image: quay.io/wunder/fuzzy-alpine-base
     command:
       - /bin/true
     volumes:
-      # Allow local volume binding overrides
+      # bind in the web and vendor in case the dev makes changes
       - "./drupal/current/web:/app/web"
       - "./drupal/current/vendor:/app/vendor"
+      # override local source.
       - "./drupal/config/sync:/app/config"
       - "./drupal/code/modules/custom:/app/web/modules/custom"
       - "./drupal/code/themes/custom:/app/web/themes/custom"
@@ -55,7 +56,7 @@ services:
       - source
       - assets
     environment:
-      DNSDOCK_ALIAS: fpm.%PROJECT%.docker
+      DNSDOCK_ALIAS: fpm.wtest.docker
     links:
       - db:db.app
       - memcache:memcached.app
@@ -71,7 +72,7 @@ services:
       - source
       - assets
     environment:
-      DNSDOCK_ALIAS: www.%PROJECT%.docker
+      DNSDOCK_ALIAS: www.wtest.docker
     links:
       - fpm:fpm.app
 
@@ -83,7 +84,8 @@ services:
     ports:
       - 8080:80
     environment:
-      DNSDOCK_ALIAS: %PROJECT%.docker
+      DNSDOCK_ALIAS: wtest.docker
       VARNISH_BACKEND_HOST: backend.app
     links:
       - www:backend.app
+    

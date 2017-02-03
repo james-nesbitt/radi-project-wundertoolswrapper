@@ -1,31 +1,11 @@
-build:
-  privileged: true
-  description: Build the WT application
-  image: quay.io/wunder/fuzzy-alpine-devshell
-  hostname: "build"
-  working_dir: /app
-  environment:
-    PROJECT: "%PROJECT%"
-    PROJECTROOT: "/app/project"
-    BUILDROOT: "/app/project/drupal/current"
-    DOCKERREPO: "quay.io/"
-  entrypoint:
-    - /bin/sh
-    - /app/build.sh
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
 
-    - "./:/app/project"
-    - ".radi/tools/wundertools/build.sh:/app/build.sh"
-
-    - "~/.gitconfig:/app/.gitconfig:ro"
-    - "~/.ssh:/app/.ssh:ro"
+# @NOTE Most of these require that you have project containers build and running
 
 # Give a ZSH tool shell with access to the project containers
 #
-# @NOTE Requires that you have the project containers built and running
 shell:
   description: Give a command shell, with access to the application
+  tty: true
   image: quay.io/wunder/fuzzy-alpine-devshell
   hostname: "shell"
   working_dir: /app
@@ -42,6 +22,47 @@ shell:
     - db:db.app
     - fpm:fpm.app
     - www:www.app
+
+build.sh:
+  description: Run the Drupal Build.sh
+  image: quay.io/wunder/fuzzy-alpine-devshell
+  hostname: "build"
+  working_dir: /app/project/drupal
+  environment:
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/app/bin:/app/vendor/bin:/app/.composer/vendor/bin"
+  entrypoint:
+    - ./build.sh
+    - "--config=conf/site.radi.yml"
+  volumes:
+    - "./:/app/project"
+
+    - "~/.gitconfig:/app/.gitconfig:ro"
+    - "~/.ssh:/app/.ssh:ro" 
+  links:
+    - db:db.app
+
+build-image:
+  privileged: true
+  description: Build the source code image
+  image: quay.io/wunder/fuzzy-alpine-devshell
+  hostname: "build"
+  working_dir: /app/project/
+  environment:
+    PROJECT: "wtest"
+    PROJECTROOT: "/app/project"
+    DOCKERREPO: "quay.io/"
+  entrypoint:
+    - /bin/sh
+    - /app/build.sh
+    - --no-buildsh
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+
+    - "./:/app/project"
+    - ".radi/tools/wundertools/build.sh:/app/build.sh"
+
+    - "~/.gitconfig:/app/.gitconfig:ro"
+    - "~/.ssh:/app/.ssh:ro"
 
 # Drupal Console
 drupal:
@@ -60,6 +81,26 @@ drupal:
     - "./settings/drupal-console:/app/.drupal"
     - "./source/drupal/conf/composer.json:/app/.composer.json"
     - "./source/drupal/conf/composer.lock:/app/.composer.lock"
+
+    - "~/.gitconfig:/app/.gitconfig:ro"
+    - "~/.ssh:/app/.ssh:ro"
+  links:
+    - db:db.app
+
+# Drupal Console
+drush:
+  description: Run drupal console on the application
+  image: quay.io/wunder/fuzzy-alpine-devshell
+  working_dir: /app/web
+  entrypoint:
+    - /app/vendor/bin/drush
+    - --ansi
+  volumes_from:
+    - source
+    - assets
+  volumes:
+    - "./backup:/app/backup"
+    - "./settings/drush:/app/.drush"
 
     - "~/.gitconfig:/app/.gitconfig:ro"
     - "~/.ssh:/app/.ssh:ro"

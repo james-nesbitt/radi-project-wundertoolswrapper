@@ -1,0 +1,42 @@
+initialize:
+  description: Build the WT application source code
+  image: quay.io/wunder/fuzzy-alpine-devshell
+  hostname: "build"
+  working_dir: /app/project/
+  environment:
+    PROJECT: "%PROJECT%"
+    PROJECTROOT: "/app/project"
+    DOCKERREPO: "quay.io/"
+  entrypoint:
+    - /bin/sh
+    - /app/build.sh
+    - --no-image-build
+  volumes:
+    - "./:/app/project"
+    - ".radi/tools/wundertools/build.sh:/app/build.sh"
+
+    - "~/.gitconfig:/app/.gitconfig:ro"
+    - "~/.ssh:/app/.ssh:ro"
+
+build-image:
+  privileged: true
+  description: Build the source code image
+  image: quay.io/wunder/fuzzy-alpine-devshell
+  hostname: "build"
+  working_dir: /app/project/
+  environment:
+    PROJECT: "wtest"
+    PROJECTROOT: "/app/project"
+    DOCKERREPO: "quay.io/"
+  entrypoint:
+    - /bin/sh
+    - /app/build.sh
+    - --no-buildsh
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+
+    - "./:/app/project"
+    - ".radi/tools/wundertools/build.sh:/app/build.sh"
+
+    - "~/.gitconfig:/app/.gitconfig:ro"
+    - "~/.ssh:/app/.ssh:ro"

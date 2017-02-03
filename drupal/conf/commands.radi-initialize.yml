@@ -1,0 +1,22 @@
+
+# Basic new site functionality when run using radi in initialize stage
+#
+# Copied from default commands, but removed any permissions changes (not needed)
+# and any database actions (db won't be avialable yet)
+#
+# This commands yml is only used by radi when it does the first initialization
+# and creates a web source before the DB is ready.  It is only needed because the
+# default "new" expects a DB connection
+#
+new:
+  - make
+
+  - shell: mkdir -p current/web/modules/custom
+  - shell: mkdir -p current/web/themes/custom
+  - shell: mkdir -p current/web/profiles/custom
+  - shell: mkdir -p current/web/libraries/custom
+  - shell: mkdir -p current/web/sites/default/files
+
+  - backup
+  - finalize
+  - cleanup

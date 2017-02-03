@@ -6,78 +6,7 @@
       - Id: Default
         Operation: "*"
         Authorize: Allow
-        
-- Type: File
-  path: .radi/commands.yml
-  Contents: |2
-    build:
-      privileged: true
-      description: Build the WT application
-      image: quay.io/wunder/fuzzy-alpine-devshell
-      hostname: "build"
-      working_dir: /app
-      environment:
-        PROJECT: "%PROJECT%"
-        PROJECTROOT: "/app/project"
-        BUILDROOT: "/app/project/drupal/current"
-        DOCKERREPO: "quay.io/"
-      entrypoint:
-        - /bin/sh
-        - /app/build.sh
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-    
-        - "./:/app/project"
-        - ".radi/tools/wundertools/build.sh:/app/build.sh"
-    
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
-    
-    # Give a ZSH tool shell with access to the project containers
-    #
-    # @NOTE Requires that you have the project containers built and running
-    shell:
-      description: Give a command shell, with access to the application
-      image: quay.io/wunder/fuzzy-alpine-devshell
-      hostname: "shell"
-      working_dir: /app
-      volumes_from:
-        - source
-        - assets
-      volumes:
-        - "!:/app/pwd"
-        - "./:/app/project"
-    
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
-      links:
-        - db:db.app
-        - fpm:fpm.app
-        - www:www.app
-    
-    # Drupal Console
-    drupal:
-      description: Run drupal console on the application
-      image: quay.io/wunder/fuzzy-alpine-devshell
-      working_dir: /app/web
-      entrypoint:
-        - /app/vendor/bin/drupal
-        - --ansi
-      volumes_from:
-        - source
-        - assets
-      volumes:
-        - "./backup:/app/backup"
-        - "./settings/drush:/app/.drush"
-        - "./settings/drupal-console:/app/.drupal"
-        - "./source/drupal/conf/composer.json:/app/.composer.json"
-        - "./source/drupal/conf/composer.lock:/app/.composer.lock"
-    
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
-      links:
-        - db:db.app
-        
+
 - Type: File
   path: .radi/project.yml
   Contents: |2
@@ -96,46 +25,12 @@
         Implementations:
           - orchestrate
           - command
-        
+ 
 - Type: File
   path: .radi/settings.yml
   Contents: |2
     Project: "%PROJECT%"
         
-- Type: File
-  path: .radi/tools/wundertools/Dockerfile
-  Contents: |2
-    # Wundertools Wrapper Docker build file
-    #
-    # This build expects:
-    #   1. this docker build should be run after a composer install has been used to retrieve vendor/build www
-    #   2. docker build using this file should be executed from the project source root (copy this file there first)
-    #
-    FROM quay.io/wunder/fuzzy-alpine-base:v3.4
-    MAINTAINER james.nesbitt@wunder.io
-    
-    # Add core source
-    ADD drupal/current/web /app/web
-    ADD drupal/current/vendor /app/vendor
-    
-    # Now it appears that drupal console wants to see composer files.
-    ADD drupal/conf/composer.json /app/composer.json
-    ADD drupal/conf/composer.lock /app/composer.lock
-    
-    # Add project code and conf
-    ADD drupal/code/modules/custom /app/web/modules/custom
-    ADD drupal/code/themes/custom /app/web/themes/custom
-    #ADD drupal/code/profiles/custom /app/web/profiles/custom
-    #ADD drupal/code/libraries/custom /app/web/libraries/custom
-    
-    # Add in Drupal config
-    ADD drupal/config/sync /app/config
-    
-    # Add Drupal site settings
-    ADD drupal/conf/services.yml /app/web/sites/default/services.yml
-    ADD drupal/conf/settings.php /app/web/sites/default/settings.php
-    ADD drupal/conf/radi.settings.php /app/web/sites/default/settings.local.php
-    ADD drupal/conf/radi.services.yml /app/web/sites/default/services.local.yml
         
 - Type: File
   path: .radi/tools/wundertools/README.md
@@ -151,6 +46,7 @@
     
     
     > See the `build` command in the .radio/commands.yml
+        
         
         
 - Type: File
@@ -170,8 +66,10 @@
     #
     
     echo "----------------------------------------------
-    Commencing WunderTools -> Radi build
+    WunderTools -> Radi build handler
     "
+    
+    export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/app/bin:/app/vendor/bin:/app/.composer/vendor/bin"
     
     ##### Interpret arguments #####################################################
     
@@ -180,23 +78,18 @@
     do
     	case "$arg" in
     
-    	--no-composer)
-    		echo " -> DISABLING COMPOSER RUN"
-    		RUN_COMPOSER="no"
-    		;;
-    
-    	--composer-update)
-    		echo " -> COMPOSER WILL UPDATE INSTEAD OF INSTALL"
-    		COMPOSER_COMMAND="update"
+    	--no-buildsh)
+    		#echo " -> DISABLING BUILD.SH RUN"
+    		RUN_BUILDSH="no"
     		;;
     
     	--no-image-build)
-    		echo " -> DISABLING DOCKER IMAGE BUILD"
+    		#echo " -> DISABLING DOCKER IMAGE BUILD"
     		RUN_IMAGEBUILD="no"
     		;;
     
     	--push-image)
-    		echo " -> PUSHING DOCKER IMAGE BUILD"
+    		#echo " -> PUSHING DOCKER IMAGE BUILD"
     		RUN_IMAGEPUSH="yes"
     		;;
     
@@ -211,13 +104,12 @@
     
     DOCKERREPO="${DOCKERREPO:-quay.io/}"
     IMAGEROOT="${IMAGEROOT:-wunder/project-}"
-    
     [ -z "${IMAGENAME}" ] && IMAGENAME="${DOCKERREPO}${IMAGEROOT}${PROJECT}-source"
     
-    PROJECTROOT="/app/project"
-    DRUPALROOT="${PROJECTROOT}/drupal"
+    PROJECTROOT="${PROJECTROOT:-/app/project}"
+    [ -z "${DRUPALROOT}" ] && DRUPALROOT="${PROJECTROOT}/drupal"
     
-    RUN_COMPOSER="${RUN_COMPOSER:-yes}"
+    RUN_BUILDSH="${RUN_BUILDSH:-yes}"
     RUN_IMAGEBUILD="${RUN_IMAGEBUILD:-yes}"
     RUN_IMAGEPUSH="${RUN_IMAGEPUSH:-no}"
     
@@ -225,65 +117,22 @@
     
     ##### BUILD PROJECT SOURCE ####################################################
     
-    if [ "${RUN_COMPOSER}" = "yes" ]; then
+    if [ "${RUN_BUILDSH}" = "yes" ]; then
     
-    	# let's build to /app/project/drupal/current, just like wundertools does.
-    	# Then PHPStorm can easily be made to keep working.
+    	echo "----- Using build.sh generate full project source -----
     
-    	echo "----- Using composer to generate full project source -----"
+    Now using the drupal/build.sh to generate source.
     
-    	BUILDROOT="${DRUPALROOT}/current"
+    Note that we have no need of generating source on the host, but we do 
+    so in order to give local developers access to source code for code editor
+    compatibility.
     
-    	echo "--> configured
-    	PROJECTROOT-------:${PROJECTROOT}
-    	DRUPALROOT--------:${DRUPALROOT}
-    	BUILDROOT---------:${BUILDROOT}
     	"
     
-    	echo "--> Creating source build destination ${BUILDROOT}"
-    	sudo rm -rf "${BUILDROOT}"
-    	mkdir -p "${BUILDROOT}"
-    
-    	# Get ready for the composer build
-    	cp "${DRUPALROOT}/conf/composer.json" "${BUILDROOT}/composer.json"
-    	cp "${DRUPALROOT}/conf/composer.lock" "${BUILDROOT}/composer.lock"
-    
-    
-    	# BUild main Drupal
-    	echo "--> using composer to build full project source"
-    	(/usr/local/bin/composer --working-dir="${BUILDROOT}" --optimize-autoloader "${COMPOSER_COMMAND}")
-    
-    	# Add in custom files
-    
-    	####
-    	# It is better just to configure PHPstorm to know that the module code is in DRUPALROOT
-    	# instead of putting that code into current.  The code will be mapped into the right
-    	# place during docker build, and so isn't needed in current.
-    	####
-    
-    	# Add project code and conf
-    	# echo "--> Adding in custom modules/themes"
-    	mkdir -p "${BUILDROOT}/web/modules/custom"
-    	# cp -R "${DRUPALROOT}/code/modules/custom" "${BUILDROOT}/web/modules/custom"
-    	mkdir -p "${BUILDROOT}/web/themes/custom"
-    	# cp -R "${DRUPALROOT}/code/themes/custom" "${BUILDROOT}/web/themes/custom"
-    	mkdir -p "${BUILDROOT}/web/profiles/custom"
-    	#ADD drupal/code/profiles/custom /app/web/profiles/custom
-    	mkdir -p "${BUILDROOT}/web/libraries/custom"
-    	#ADD drupal/code/libraries/custom /app/web/libraries/custom
-    
-    	# Prepare for files (creating the folder now fixes file permissions when bound)
-    	mkdir -p "${BUILDROOT}/web/sites/default/files"
-    
-    	# Drupal site settings [this overwrites files in the current, so it may be a bit better]
-    	echo "--> copying over Drupal settings into default site"
-    	#mkdir -p "${BUILDROOT}/web/sites/default"
-    	cp -R "${DRUPALROOT}/conf/services.yml" "${BUILDROOT}/web/sites/default/services.yml"
-    	cp -R "${DRUPALROOT}/conf/settings.php" "${BUILDROOT}/web/sites/default/settings.php"
-    	cp -R "${DRUPALROOT}/conf/radi.services.yml" "${BUILDROOT}/web/sites/default/services.local.yml"
-    	cp -R "${DRUPALROOT}/conf/radi.settings.php" "${BUILDROOT}/web/sites/default/settings.local.php"
-    	# rm "${BUILDROOT}/web/sites/default/default.*"
-    	# rm "${BUILDROOT}/web/sites/example.*"
+    	(
+    		cd "${DRUPALROOT}"
+    		./build.sh -c conf/site.radi.yml -o conf/commands.radi-initialize.yml new
+    	)
     
     fi
     
@@ -291,19 +140,20 @@
     
     if [ "${RUN_IMAGEBUILD}" = "yes" ];then
     
-    	echo "----- Building Docker image -----"
+    	echo "----- Building Docker image -----
     
-    	# Put the Dockerfile in place
-    	echo "--> Temporarily copying Dockerfile to project root: ${PROJECTROOT}/.radi/tools/wundertools/Dockerfile => ${PROJECTROOT}/Dockerfile"
-    	cp "${PROJECTROOT}/.radi/tools/wundertools/Dockerfile" "${PROJECTROOT}/Dockerfile"
+    This command will now build a local docker image for source code
+    using the Dockerfile in the drupal root
+    
+    Image: ${IMAGENAME}
+    
+    
+    	"
     
     	# run the docker build
     	echo "--> building docker image for source code [production safe]"
-    	(sudo docker build --tag "${IMAGENAME}" "${PROJECTROOT}")
+    	(sudo docker build --tag "${IMAGENAME}" "${DRUPALROOT}")
     	echo "--> image build: ${IMAGENAME}"
-    
-    	# remove the temp Dockerfile position
-    	rm "${PROJECTROOT}/Dockerfile"
     
     fi
     
@@ -324,6 +174,7 @@
     fi
     
     echo ">> Build is finished"
+        
         
 - Type: File
   path: .radi/tools/wundertools/radify.sh
@@ -466,7 +317,7 @@
     
     "
     
-    echo "Would you like me to run the initial image build (probably 2 minutes build time)? (y/N)"
+    echo "Would you like me to run the initial image build (probably 5 minutes build time)? (y/N)"
     read YNBUILD
     case "$YNBUILD" in
         [Yy]* )
@@ -475,10 +326,172 @@
     		echo "Running build --->"
     		echo " "
     
-    		(radi build)
+    		(
+    			radi --environment=initialize initialize
+    			radi --environment=initialize build-image
+    		)
     
     		;;
     esac
+        
+        
+- Type: File
+  path: .radi/commands.yml
+  Contents: |2
+    
+    # @NOTE Most of these require that you have project containers build and running
+    
+    # Give a ZSH tool shell with access to the project containers
+    #
+    shell:
+      description: Give a command shell, with access to the application
+      tty: true
+      image: quay.io/wunder/fuzzy-alpine-devshell
+      hostname: "shell"
+      working_dir: /app
+      volumes_from:
+        - source
+        - assets
+      volumes:
+        - "!:/app/pwd"
+        - "./:/app/project"
+    
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
+      links:
+        - db:db.app
+        - fpm:fpm.app
+        - www:www.app
+    
+    build.sh:
+      description: Run the Drupal Build.sh
+      image: quay.io/wunder/fuzzy-alpine-devshell
+      hostname: "build"
+      working_dir: /app/project/drupal
+      environment:
+        PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/app/bin:/app/vendor/bin:/app/.composer/vendor/bin"
+      entrypoint:
+        - ./build.sh
+        - "--config=conf/site.radi.yml"
+      volumes:
+        - "./:/app/project"
+    
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro" 
+      links:
+        - db:db.app
+    
+    build-image:
+      privileged: true
+      description: Build the source code image
+      image: quay.io/wunder/fuzzy-alpine-devshell
+      hostname: "build"
+      working_dir: /app/project/
+      environment:
+        PROJECT: "wtest"
+        PROJECTROOT: "/app/project"
+        DOCKERREPO: "quay.io/"
+      entrypoint:
+        - /bin/sh
+        - /app/build.sh
+        - --no-buildsh
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+    
+        - "./:/app/project"
+        - ".radi/tools/wundertools/build.sh:/app/build.sh"
+    
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
+    
+    # Drupal Console
+    drupal:
+      description: Run drupal console on the application
+      image: quay.io/wunder/fuzzy-alpine-devshell
+      working_dir: /app/web
+      entrypoint:
+        - /app/vendor/bin/drupal
+        - --ansi
+      volumes_from:
+        - source
+        - assets
+      volumes:
+        - "./backup:/app/backup"
+        - "./settings/drush:/app/.drush"
+        - "./settings/drupal-console:/app/.drupal"
+        - "./source/drupal/conf/composer.json:/app/.composer.json"
+        - "./source/drupal/conf/composer.lock:/app/.composer.lock"
+    
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
+      links:
+        - db:db.app
+    
+    # Drupal Console
+    drush:
+      description: Run drupal console on the application
+      image: quay.io/wunder/fuzzy-alpine-devshell
+      working_dir: /app/web
+      entrypoint:
+        - /app/vendor/bin/drush
+        - --ansi
+      volumes_from:
+        - source
+        - assets
+      volumes:
+        - "./backup:/app/backup"
+        - "./settings/drush:/app/.drush"
+    
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
+      links:
+        - db:db.app
+        
+- Type: File
+  path: .radi/environments/initializer/commands.yml
+  Contents: |2
+    initialize:
+      description: Build the WT application source code
+      image: quay.io/wunder/fuzzy-alpine-devshell
+      hostname: "build"
+      working_dir: /app/project/
+      environment:
+        PROJECT: "%PROJECT%"
+        PROJECTROOT: "/app/project"
+        DOCKERREPO: "quay.io/"
+      entrypoint:
+        - /bin/sh
+        - /app/build.sh
+        - --no-image-build
+      volumes:
+        - "./:/app/project"
+        - ".radi/tools/wundertools/build.sh:/app/build.sh"
+    
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
+    
+    build-image:
+      privileged: true
+      description: Build the source code image
+      image: quay.io/wunder/fuzzy-alpine-devshell
+      hostname: "build"
+      working_dir: /app/project/
+      environment:
+        PROJECT: "wtest"
+        PROJECTROOT: "/app/project"
+        DOCKERREPO: "quay.io/"
+      entrypoint:
+        - /bin/sh
+        - /app/build.sh
+        - --no-buildsh
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+    
+        - "./:/app/project"
+        - ".radi/tools/wundertools/build.sh:/app/build.sh"
+    
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
         
 - Type: File
   path: README.md
@@ -532,97 +545,18 @@
     already.
         
 - Type: File
-  path: docker-compose.yml
+  path: drupal/conf/radi.services.yml
   Contents: |2
-    
-    version: "2"
-    
+    # Local development services.
+    #
+    # @NOTE these are copied from development.services.yml
+    #
+    # To activate this feature, follow the instructions at the top of the
+    # 'example.settings.local.php' file, which sits next to this file.
     services:
-    
-      source:
-        image: "quay.io/wunder/client-%PROJECT%-source"
-        command:
-          - /bin/true
-        volumes:
-          # Allow local volume binding overrides
-          - "./drupal/current/web:/app/web"
-          - "./drupal/current/vendor:/app/vendor"
-          - "./drupal/config/sync:/app/config"
-          - "./drupal/code/modules/custom:/app/web/modules/custom"
-          - "./drupal/code/themes/custom:/app/web/themes/custom"
-          - "./drupal/code/profiles/custom:/app/web/profiles/custom"
-          # - "./drupal/code/libraries/custom:/app/web/libraries/custom"
-    
-      assets:
-        image: quay.io/wunder/fuzzy-alpine-base
-        command:
-          - /bin/true
-        volumes:
-          # Keep assets outside of the image, you could map these to
-          # local paths if you want to keep assets locally.
-          - "/app/web/sites/default/files"
-          - "/app/private"
-    
-      ####
-      # Servers
-      #
-    
-      ####
-      # DB node
-      #
-      db:
-        image: quay.io/wunder/fuzzy-alpine-mariadb
-    
-      ####
-      # MemCacheD
-      #
-      memcache:
-        image: quay.io/wunder/fuzzy-alpine-memcached
-    
-      ####
-      # FPM node
-      #
-      # @NOTE in production, the source volumes should be source:ro
-      #  but local devs may need to write to settings.php
-    
-      fpm:
-        image: quay.io/wunder/fuzzy-alpine-php-dev
-        volumes_from:
-          - source
-          - assets
-        environment:
-          DNSDOCK_ALIAS: fpm.%PROJECT%.docker
-        links:
-          - db:db.app
-          - memcache:memcached.app
-    
-      ####
-      # WWW node
-      #
-      www:
-        image: quay.io/wunder/fuzzy-alpine-nginx-pagespeed-drupal
-        ports:
-          - 8081:80
-        volumes_from:
-          - source
-          - assets
-        environment:
-          DNSDOCK_ALIAS: www.%PROJECT%.docker
-        links:
-          - fpm:fpm.app
-    
-      ####
-      # Static cache service
-      #
-      varnish:
-        image: quay.io/wunder/fuzzy-alpine-varnish
-        ports:
-          - 8080:80
-        environment:
-          DNSDOCK_ALIAS: %PROJECT%.docker
-          VARNISH_BACKEND_HOST: backend.app
-        links:
-          - www:backend.app
+      cache.backend.null:
+        class: Drupal\Core\Cache\NullBackendFactory
+        
         
 - Type: File
   path: drupal/conf/radi.settings.php
@@ -645,7 +579,7 @@
           'password' => 'app',
           'host'     => 'db.app',
           'port'     => '',
-          'driver'   => 'mysqli',
+          'driver'   => 'mysql',
           'prefix'   => '',
         ),
       ),
@@ -730,16 +664,198 @@
      */
     $settings['skip_permissions_hardening'] = TRUE;
         
+        
 - Type: File
-  path: drupal/conf/radi.services.yml
+  path: drupal/conf/commands.radi-initialize.yml
   Contents: |2
-    # Local development services.
+    
+    # Basic new site functionality when run using radi in initialize stage
     #
-    # @NOTE these are copied from development.services.yml
+    # Copied from default commands, but removed any permissions changes (not needed)
+    # and any database actions (db won't be avialable yet)
     #
-    # To activate this feature, follow the instructions at the top of the
-    # 'example.settings.local.php' file, which sits next to this file.
+    # This commands yml is only used by radi when it does the first initialization
+    # and creates a web source before the DB is ready.  It is only needed because the
+    # default "new" expects a DB connection
+    #
+    new:
+      - make
+    
+      - shell: mkdir -p current/web/modules/custom
+      - shell: mkdir -p current/web/themes/custom
+      - shell: mkdir -p current/web/profiles/custom
+      - shell: mkdir -p current/web/libraries/custom
+      - shell: mkdir -p current/web/sites/default/files
+    
+      - backup
+      - finalize
+      - cleanup
+        
+- Type: File
+  path: drupal/conf/site.radi.yml
+  Contents: |2
+    ---
+    # Site.yml for use with radi
+    
+    default:
+    
+      type: composer
+    
+      temporary: _build
+    
+      # Specify Drupal version
+      drupal_version: d8
+    
+      # The final produced Drupal installation
+      final: current
+    
+      # The Subpath of "final" and "temporary" where drupal resides.
+      drupal_subpath: /web
+      # Directory which will house all the previous builds
+      previous: builds
+    
+      # Installation profile to use
+      profile: config_installer
+    
+      # Site name given at installation phase
+      site: %PROJECT%
+    
+      copy:
+        - conf/composer.json: composer.json
+        - conf/composer.lock: composer.lock     
+        - conf/services.yml: web/sites/default/services.yml
+        - conf/settings.php: web/sites/default/settings.php
+        - conf/radi.settings.php: web/sites/default/settings.local.php
+        - conf/radi.services.yml: web/sites/default/services.local.yml
+        - conf/_ping.php: web/_ping.php
+        
+- Type: File
+  path: drupal/Dockerfile
+  Contents: |2
+    # Wundertools Wrapper Docker build file
+    #
+    # This build expects:
+    #   1. this docker build should be run after a composer install has been used to retrieve vendor/build www
+    #   2. docker build using this file should be executed from the project source drupal root
+    #
+    FROM quay.io/wunder/fuzzy-alpine-base:v3.4
+    MAINTAINER james.nesbitt@wunder.io
+    
+    # Add core source
+    ADD current/web /app/web
+    ADD current/vendor /app/vendor
+    
+    # Now it appears that drupal console wants to see composer files.
+    ADD conf/composer.json /app/composer.json
+    ADD conf/composer.lock /app/composer.lock
+    
+    # Add project code and conf
+    ADD code/modules/custom /app/web/modules/custom
+    ADD code/themes/custom /app/web/themes/custom
+    #ADD code/profiles/custom /app/web/profiles/custom
+    #ADD code/libraries/custom /app/web/libraries/custom
+    
+    # Add in Drupal config
+    ADD sync /app/config
+    
+    # Add Drupal site settings
+    ADD conf/services.yml /app/web/sites/default/services.yml
+    ADD conf/settings.php /app/web/sites/default/settings.php
+    ADD conf/radi.settings.php /app/web/sites/default/settings.local.php
+    ADD conf/radi.services.yml /app/web/sites/default/services.local.yml
+        
+- Type: File
+  path: docker-compose.yml
+  Contents: |2
+    
+    version: "2"
+    
     services:
-      cache.backend.null:
-        class: Drupal\Core\Cache\NullBackendFactory
+    
+      source:
+        image: quay.io/wunder/fuzzy-alpine-base
+        command:
+          - /bin/true
+        volumes:
+          # bind in the web and vendor in case the dev makes changes
+          - "./drupal/current/web:/app/web"
+          - "./drupal/current/vendor:/app/vendor"
+          # override local source.
+          - "./drupal/config/sync:/app/config"
+          - "./drupal/code/modules/custom:/app/web/modules/custom"
+          - "./drupal/code/themes/custom:/app/web/themes/custom"
+          - "./drupal/code/profiles/custom:/app/web/profiles/custom"
+          # - "./drupal/code/libraries/custom:/app/web/libraries/custom"
+    
+      assets:
+        image: quay.io/wunder/fuzzy-alpine-base
+        command:
+          - /bin/true
+        volumes:
+          # Keep assets outside of the image, you could map these to
+          # local paths if you want to keep assets locally.
+          - "/app/web/sites/default/files"
+          - "/app/private"
+    
+      ####
+      # Servers
+      #
+    
+      ####
+      # DB node
+      #
+      db:
+        image: quay.io/wunder/fuzzy-alpine-mariadb
+    
+      ####
+      # MemCacheD
+      #
+      memcache:
+        image: quay.io/wunder/fuzzy-alpine-memcached
+    
+      ####
+      # FPM node
+      #
+      # @NOTE in production, the source volumes should be source:ro
+      #  but local devs may need to write to settings.php
+    
+      fpm:
+        image: quay.io/wunder/fuzzy-alpine-php-dev
+        volumes_from:
+          - source
+          - assets
+        environment:
+          DNSDOCK_ALIAS: fpm.wtest.docker
+        links:
+          - db:db.app
+          - memcache:memcached.app
+    
+      ####
+      # WWW node
+      #
+      www:
+        image: quay.io/wunder/fuzzy-alpine-nginx-pagespeed-drupal
+        ports:
+          - 8081:80
+        volumes_from:
+          - source
+          - assets
+        environment:
+          DNSDOCK_ALIAS: www.wtest.docker
+        links:
+          - fpm:fpm.app
+    
+      ####
+      # Static cache service
+      #
+      varnish:
+        image: quay.io/wunder/fuzzy-alpine-varnish
+        ports:
+          - 8080:80
+        environment:
+          DNSDOCK_ALIAS: wtest.docker
+          VARNISH_BACKEND_HOST: backend.app
+        links:
+          - www:backend.app
+        
         

@@ -16,7 +16,7 @@ $databases = array (
       'password' => 'app',
       'host'     => 'db.app',
       'port'     => '',
-      'driver'   => 'mysqli',
+      'driver'   => 'mysql',
       'prefix'   => '',
     ),
   ),
@@ -100,3 +100,4 @@ $settings['rebuild_access'] = TRUE;
  * Skip file system permissions hardening.
  */
 $settings['skip_permissions_hardening'] = TRUE;
+    
