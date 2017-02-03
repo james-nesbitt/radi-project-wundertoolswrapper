@@ -532,6 +532,7 @@
     1. standard docker local environment configuration:
     
        docker-compose.yml : compose file for a project
+    
        drupal/Dockerfile : source code image build instructions
     
     2. some base radi settings in .radi
@@ -543,6 +544,7 @@
     3. some radi commands for the new 'initialize' envirnment:
     
        `radi --environment=initialize build-source` : build source code without a db
+    
        `radi --environment=initialize build-image` : build a source docker image
     
     4. a radi command to use build.sh in a running project (requires db container is running)
@@ -552,8 +554,8 @@
     5. some wundertools overrides:
     
        commands.radi-initialize.yml : define a command set used in the radi initialize environment
-       site.radi.yml : local site settings for use with radi
     
+       site.radi.yml : local site settings for use with radi
     
     
     ## How to use it:
