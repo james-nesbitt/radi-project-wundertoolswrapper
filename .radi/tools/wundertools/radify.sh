@@ -11,7 +11,8 @@
 # This script should be run in the root of a wundertools project.
 #
 
-INIT_PATHS="https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/init.yml"
+# override the init_paths using cmd line variable
+[ -z "${INIT_PATHS}" ] && INIT_PATHS="https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/init.yml"
 
 echo "##### RADIFY YOUR WUNDERTOOLS #####
 
