@@ -24,6 +24,19 @@ default:
   # Site name given at installation phase
   site: %PROJECT%
 
+  #
+  # Copy in all the needed code.
+  #
+  # @NOTE: docker doesn't need this, we just do it because
+  #   build.sh needs it, primarily to make sure that the
+  #   container paths are created when it does it's composer
+  #   build.
+  # @NOTE we use copy instead of link in order to make the
+  #   paths work well with docker volume mounting (sym-links
+  #   produce files, and we need folders.)  Ignore the static
+  #   files and folders in there for now, as our docker-compose
+  #   will mount the /drupal/code/X into running containers.
+  #
   copy:
     - conf/composer.json: composer.json
     - conf/composer.lock: composer.lock     
@@ -31,4 +44,8 @@ default:
     - conf/settings.php: web/sites/default/settings.php
     - conf/radi.settings.php: web/sites/default/settings.local.php
     - conf/radi.services.yml: web/sites/default/services.local.yml
+    - files: web/sites/default/files
+    - code/modules/custom: web/modules/custom
+    - code/themes/custom: web/themes/custom
+    - sync: sync
     - conf/_ping.php: web/_ping.php
