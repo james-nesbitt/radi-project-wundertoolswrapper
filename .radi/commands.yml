@@ -30,8 +30,9 @@ build.sh:
   image: quay.io/wunder/fuzzy-alpine-devshell
   hostname: "build"
   working_dir: /app/project/drupal
+  environment:
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/app/bin:/app/vendor/bin:/app/.composer/vendor/bin"
   entrypoint:
-    - /bin/zsh
     - ./build.sh
     - "--config=conf/site.radi.yml"
   volumes:
