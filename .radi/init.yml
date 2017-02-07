@@ -8,32 +8,6 @@
         Authorize: Allow
         
 - Type: File
-  path: .radi/project.yml
-  Contents: |2
-    Components:
-    
-      # Base implmentation is a local project
-      - Type: local
-        Implementations:
-          - config
-          - setting
-          - project
-          - security
-    
-      # Also use the local API for commands and orchestration
-      - Type: local
-        Implementations:
-          - orchestrate
-          - command
-        
-        
-- Type: File
-  path: .radi/settings.yml
-  Contents: |2
-    Project: "%PROJECT%"
-        
-        
-- Type: File
   path: .radi/tools/wundertools/README.md
   Contents: |2
     WUNDERTOOLS
@@ -555,6 +529,30 @@
           - security
         
 - Type: File
+  path: .radi/project.yml
+  Contents: |2
+    Components:
+    
+      # Base implmentation is a local project
+      - Type: local
+        Implementations:
+          - config
+          - setting
+          - project
+          - security
+    
+      # Also use the local API for commands and orchestration
+      - Type: local
+        Implementations:
+          - orchestrate
+          - command
+    
+- Type: File
+  path: .radi/settings.yml
+  Contents: |2
+    Project: "%PROJECT%"
+    
+- Type: File
   path: drupal/conf/radi.services.yml
   Contents: |2
     # Local development services.
@@ -722,6 +720,19 @@
       # Site name given at installation phase
       site: %PROJECT%
     
+      #
+      # Copy in all the needed code.
+      #
+      # @NOTE: docker doesn't need this, we just do it because
+      #   build.sh needs it, primarily to make sure that the
+      #   container paths are created when it does it's composer
+      #   build.
+      # @NOTE we use copy instead of link in order to make the
+      #   paths work well with docker volume mounting (sym-links
+      #   produce files, and we need folders.)  Ignore the static
+      #   files and folders in there for now, as our docker-compose
+      #   will mount the /drupal/code/X into running containers.
+      #
       copy:
         - conf/composer.json: composer.json
         - conf/composer.lock: composer.lock     
@@ -729,6 +740,10 @@
         - conf/settings.php: web/sites/default/settings.php
         - conf/radi.settings.php: web/sites/default/settings.local.php
         - conf/radi.services.yml: web/sites/default/services.local.yml
+        - files: web/sites/default/files
+        - code/modules/custom: web/modules/custom
+        - code/themes/custom: web/themes/custom
+        - sync: sync
         - conf/_ping.php: web/_ping.php
         
 - Type: File
@@ -803,7 +818,7 @@
           - "./drupal/current/web:/app/web"
           - "./drupal/current/vendor:/app/vendor"
           # override local source.
-          - "./drupal/config/sync:/app/config"
+          - "./drupal/sync:/app/config"
           - "./drupal/code/modules/custom:/app/web/modules/custom"
           - "./drupal/code/themes/custom:/app/web/themes/custom"
           - "./drupal/code/profiles/custom:/app/web/profiles/custom"
@@ -817,7 +832,7 @@
           # Keep assets outside of the image, you could map these to
           # local paths if you want to keep assets locally.
           - "/app/web/sites/default/files"
-          - "/app/private"
+          #- "/app/private"
     
       ####
       # Servers

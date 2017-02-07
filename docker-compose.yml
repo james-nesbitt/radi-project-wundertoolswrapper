@@ -12,7 +12,7 @@ services:
       - "./drupal/current/web:/app/web"
       - "./drupal/current/vendor:/app/vendor"
       # override local source.
-      - "./drupal/config/sync:/app/config"
+      - "./drupal/sync:/app/config"
       - "./drupal/code/modules/custom:/app/web/modules/custom"
       - "./drupal/code/themes/custom:/app/web/themes/custom"
       - "./drupal/code/profiles/custom:/app/web/profiles/custom"
@@ -26,7 +26,7 @@ services:
       # Keep assets outside of the image, you could map these to
       # local paths if you want to keep assets locally.
       - "/app/web/sites/default/files"
-      - "/app/private"
+      #- "/app/private"
 
   ####
   # Servers
