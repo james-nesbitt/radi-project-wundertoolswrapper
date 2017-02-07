@@ -11,7 +11,8 @@
 # This script should be run in the root of a wundertools project.
 #
 
-INIT_PATHS="https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/init.yml"
+# override the init_paths using cmd line variable
+[ -z "${INIT_PATHS}" ] && INIT_PATHS="https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/init.yml"
 
 echo "##### RADIFY YOUR WUNDERTOOLS #####
 
@@ -26,14 +27,13 @@ sophisticated, so there is a chance that it will overwrite an existing file.
 
 The process is primarily template driven.
 
-The answers to the questions asked may modify which templates are used, but 
-they are primarily used to provide string substitutions for the templates,
-and to allow you to control what actions the script will take.
+The script will download some templates into your project, and ask some 
+questions. The answers to the questions asked may modify which templates are 
+used, but they are primarily used to provide string substitutions for the 
+templates, and to allow you to control what actions the script will take.
 
 This script should have been run/downloaded as: 
   https://github.com/wunderkraut/radi-project-wundertoolswrapper/blob/master/.radi/tools/wundertools/radify.sh
-or the gist:
-  https://gist.github.com/james-nesbitt/7ebf7337cbfa3f2eef69a59f05fbfc50
 
 #### Running radification
 
@@ -119,7 +119,6 @@ echo "
 
 Intialization complete
 
-
 ##### Finalization
 
 Now that the project initialization is complete, you should be able to run radi'
@@ -136,7 +135,7 @@ production, but can also be used locally with local source code bound in place.
 
 "
 
-echo "Would you like me to run the initial image build (probably 2 minutes build time)? (y/N)"
+echo "Would you like me to run the initial image build (probably 5 minutes build time)? (y/N)"
 read YNBUILD
 case "$YNBUILD" in
     [Yy]* )
@@ -145,7 +144,9 @@ case "$YNBUILD" in
 		echo "Running build --->"
 		echo " "
 
-		(radi build)
+		(
+			radi --environment=initializer initialize -- --run-buildsh
+		)
 
 		;;
 esac

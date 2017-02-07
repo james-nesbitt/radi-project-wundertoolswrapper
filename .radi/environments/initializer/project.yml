@@ -1,0 +1,9 @@
+Components:
+
+  # Base implmentation is a local project
+  - Type: local
+    Implementations:
+      - config
+      - setting
+      - command
+      - security

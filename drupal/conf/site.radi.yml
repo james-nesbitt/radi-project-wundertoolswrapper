@@ -1,0 +1,34 @@
+---
+# Site.yml for use with radi
+
+default:
+
+  type: composer
+
+  temporary: _build
+
+  # Specify Drupal version
+  drupal_version: d8
+
+  # The final produced Drupal installation
+  final: current
+
+  # The Subpath of "final" and "temporary" where drupal resides.
+  drupal_subpath: /web
+  # Directory which will house all the previous builds
+  previous: builds
+
+  # Installation profile to use
+  profile: config_installer
+
+  # Site name given at installation phase
+  site: %PROJECT%
+
+  copy:
+    - conf/composer.json: composer.json
+    - conf/composer.lock: composer.lock     
+    - conf/services.yml: web/sites/default/services.yml
+    - conf/settings.php: web/sites/default/settings.php
+    - conf/radi.settings.php: web/sites/default/settings.local.php
+    - conf/radi.services.yml: web/sites/default/services.local.yml
+    - conf/_ping.php: web/_ping.php

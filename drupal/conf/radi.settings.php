@@ -100,3 +100,4 @@ $settings['rebuild_access'] = TRUE;
  * Skip file system permissions hardening.
  */
 $settings['skip_permissions_hardening'] = TRUE;
+    

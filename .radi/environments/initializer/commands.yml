@@ -1,0 +1,93 @@
+initialize:
+  Description: Initialize the application as a WT wrapped RADI app
+
+  privileged: true
+  description: Build the source code image
+  image: quay.io/wunder/fuzzy-alpine-devshell
+  hostname: "build"
+  working_dir: /app/project/
+  environment:
+    PROJECT: "%PROJECT%"
+    PROJECTROOT: "/app/project"
+    DOCKERREPO: "quay.io/"
+  entrypoint:
+    - /bin/zsh
+    - /app/project/.radi/tools/wundertools/client-docker-image.sh
+    - --run-buildsh
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+
+    - "./:/app/project"
+
+    - "~/.gitconfig:/app/.gitconfig:ro"
+    - "~/.ssh:/app/.ssh:ro"
+
+build-source:
+  Description: Build the WT application source code
+
+  image: quay.io/wunder/fuzzy-alpine-devshell
+  hostname: "build"
+  working_dir: /app/project/
+  environment:
+    PROJECT: "%PROJECT%"
+    PROJECTROOT: "/app/project"
+    DOCKERREPO: "quay.io/"
+  entrypoint:
+    - /bin/zsh
+    - /app/project/.radi/tools/wundertools/client-docker-image.sh
+    - --run-buildsh
+    - --no-image-build
+  volumes:
+    - "./:/app/project"
+
+    - "~/.gitconfig:/app/.gitconfig:ro"
+    - "~/.ssh:/app/.ssh:ro"
+
+build-image:
+  Description: Build the source code image
+
+  privileged: true
+  image: quay.io/wunder/fuzzy-alpine-devshell
+  hostname: "build"
+  working_dir: /app/project/
+  environment:
+    PROJECT: "%PROJECT%"
+    PROJECTROOT: "/app/project"
+    DOCKERREPO: "quay.io/"
+  entrypoint:
+    - /bin/zsh
+    - /app/project/.radi/tools/wundertools/client-docker-image.sh
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+
+    - "./:/app/project"
+
+    - "~/.gitconfig:/app/.gitconfig:ro"
+    - "~/.ssh:/app/.ssh:ro"
+
+build.sh:
+  Description: Run the Drupal Build.sh
+
+  image: quay.io/wunder/fuzzy-alpine-devshell
+  hostname: "build"
+  working_dir: /app/project/drupal
+  environment:
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/app/bin:/app/vendor/bin:/app/.composer/vendor/bin"
+  entrypoint:
+    - ./build.sh
+    - "--config=conf/site.radi.yml"
+    - "--commands=conf/commands.radi-initialize.yml"
+  volumes:
+    - "./:/app/project"
+
+    - "~/.gitconfig:/app/.gitconfig:ro"
+    - "~/.ssh:/app/.ssh:ro"
+
+# Override other commands to disable them
+
+shell:
+  Internal: true
+drupal:
+  Internal: true
+drush:
+  Internal: true
