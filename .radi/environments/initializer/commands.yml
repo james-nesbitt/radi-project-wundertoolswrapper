@@ -1,28 +1,8 @@
 initialize:
-  description: Initialize the application as a WT wrapped RADI app
+  Description: Initialize the application as a WT wrapped RADI app
+
   privileged: true
   description: Build the source code image
-  image: quay.io/wunder/fuzzy-alpine-devshell
-  hostname: "build"
-  working_dir: /app/project/
-  environment:
-    PROJECT: "wtest"
-    PROJECTROOT: "/app/project"
-    DOCKERREPO: "quay.io/"
-  entrypoint:
-    - /bin/sh
-    - /app/build.sh
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
-
-    - "./:/app/project"
-    - ".radi/tools/wundertools/build.sh:/app/build.sh"
-
-    - "~/.gitconfig:/app/.gitconfig:ro"
-    - "~/.ssh:/app/.ssh:ro"
-
-build-source:
-  description: Build the WT application source code
   image: quay.io/wunder/fuzzy-alpine-devshell
   hostname: "build"
   working_dir: /app/project/
@@ -31,35 +11,81 @@ build-source:
     PROJECTROOT: "/app/project"
     DOCKERREPO: "quay.io/"
   entrypoint:
-    - /bin/sh
-    - /app/build.sh
+    - /bin/zsh
+    - /app/project/.radi/tools/wundertools/client-docker-image.sh
+    - --run-buildsh
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+
+    - "./:/app/project"
+
+    - "~/.gitconfig:/app/.gitconfig:ro"
+    - "~/.ssh:/app/.ssh:ro"
+
+build-source:
+  Description: Build the WT application source code
+
+  image: quay.io/wunder/fuzzy-alpine-devshell
+  hostname: "build"
+  working_dir: /app/project/
+  environment:
+    PROJECT: "%PROJECT%"
+    PROJECTROOT: "/app/project"
+    DOCKERREPO: "quay.io/"
+  entrypoint:
+    - /bin/zsh
+    - /app/project/.radi/tools/wundertools/client-docker-image.sh
+    - --run-buildsh
     - --no-image-build
   volumes:
     - "./:/app/project"
-    - ".radi/tools/wundertools/build.sh:/app/build.sh"
 
     - "~/.gitconfig:/app/.gitconfig:ro"
     - "~/.ssh:/app/.ssh:ro"
 
 build-image:
+  Description: Build the source code image
+
   privileged: true
-  description: Build the source code image
   image: quay.io/wunder/fuzzy-alpine-devshell
   hostname: "build"
   working_dir: /app/project/
   environment:
-    PROJECT: "wtest"
+    PROJECT: "%PROJECT%"
     PROJECTROOT: "/app/project"
     DOCKERREPO: "quay.io/"
   entrypoint:
-    - /bin/sh
-    - /app/build.sh
-    - --no-buildsh
+    - /bin/zsh
+    - /app/project/.radi/tools/wundertools/client-docker-image.sh
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
 
     - "./:/app/project"
-    - ".radi/tools/wundertools/build.sh:/app/build.sh"
 
     - "~/.gitconfig:/app/.gitconfig:ro"
     - "~/.ssh:/app/.ssh:ro"
+
+build.sh:
+  Description: Run the Drupal Build.sh
+
+  image: quay.io/wunder/fuzzy-alpine-devshell
+  hostname: "build"
+  working_dir: /app/project/drupal
+  entrypoint:
+    - /bin/zsh
+    - ./build.sh
+    - "--config=conf/site.radi.yml"
+  volumes:
+    - "./:/app/project"
+
+    - "~/.gitconfig:/app/.gitconfig:ro"
+    - "~/.ssh:/app/.ssh:ro"
+
+# Override other commands to disable them
+
+shell:
+  Internal: true
+drupal:
+  Internal: true
+drush:
+  Internal: true

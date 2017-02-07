@@ -1,7 +1,7 @@
 WUNDERTOOLS
 -----------
 
-This folder hols tools that are used to integrate the wundertools projects
+This folder holds tools that are used to integrate the wundertools projects
 into the radi implementation.
 
 Primarily, the tools exist to build a source code image from the WT project

@@ -39,140 +39,13 @@
     WUNDERTOOLS
     -----------
     
-    This folder hols tools that are used to integrate the wundertools projects
+    This folder holds tools that are used to integrate the wundertools projects
     into the radi implementation.
     
     Primarily, the tools exist to build a source code image from the WT project
     which can then be used by any docker/docker-compose implementation.
     
     > See the commands in the .radi/environment/initialize/commands.yml
-        
-- Type: File
-  path: .radi/tools/wundertools/build.sh
-  Contents: |2
-    #!/bin/sh
-    ##########
-    #
-    # Build the project source code:
-    #   - build a docker image with web source
-    #
-    # Usage:
-    #   --no-composer : don't run the composer part of the build (just build the image)
-    #   --composer-update : run composer update instead of just composer install
-    #   --no-image-build : don't build the docker image (just run composer)
-    #   --push-image : docker push the image
-    #
-    
-    echo "----------------------------------------------
-    WunderTools -> Radi build handler
-    "
-    
-    export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/app/bin:/app/vendor/bin:/app/.composer/vendor/bin"
-    
-    ##### Interpret arguments #####################################################
-    
-    sflag="-s"
-    for arg in "$@"
-    do
-    	case "$arg" in
-    
-    	--no-buildsh)
-    		#echo " -> DISABLING BUILD.SH RUN"
-    		RUN_BUILDSH="no"
-    		;;
-    
-    	--no-image-build)
-    		#echo " -> DISABLING DOCKER IMAGE BUILD"
-    		RUN_IMAGEBUILD="no"
-    		;;
-    
-    	--push-image)
-    		#echo " -> PUSHING DOCKER IMAGE BUILD"
-    		RUN_IMAGEPUSH="yes"
-    		;;
-    
-    	esac
-    done
-    
-    echo " "
-    
-    ##### Some configurations #####################################################
-    
-    PROJECT="${PROJECT:-wundertools}"
-    
-    DOCKERREPO="${DOCKERREPO:-quay.io/}"
-    IMAGEROOT="${IMAGEROOT:-wunder/project-}"
-    [ -z "${IMAGENAME}" ] && IMAGENAME="${DOCKERREPO}${IMAGEROOT}${PROJECT}-source"
-    
-    PROJECTROOT="${PROJECTROOT:-/app/project}"
-    [ -z "${DRUPALROOT}" ] && DRUPALROOT="${PROJECTROOT}/drupal"
-    
-    RUN_BUILDSH="${RUN_BUILDSH:-yes}"
-    RUN_IMAGEBUILD="${RUN_IMAGEBUILD:-yes}"
-    RUN_IMAGEPUSH="${RUN_IMAGEPUSH:-no}"
-    
-    COMPOSER_COMMAND="${COMPOSER_COMMAND:-install}"
-    
-    ##### BUILD PROJECT SOURCE ####################################################
-    
-    if [ "${RUN_BUILDSH}" = "yes" ]; then
-    
-    	echo "----- Using build.sh generate full project source -----
-    
-    Now using the drupal/build.sh to generate source.
-    
-    Note that we have no need of generating source on the host, but we do 
-    so in order to give local developers access to source code for code editor
-    compatibility.
-    
-    	"
-    
-    	(
-    		cd "${DRUPALROOT}"
-    		./build.sh -c conf/site.radi.yml -o conf/commands.radi-initialize.yml new
-    	)
-    
-    fi
-    
-    ##### BUILD SOURCE CODE IMAGE #################################################
-    
-    if [ "${RUN_IMAGEBUILD}" = "yes" ];then
-    
-    	echo "----- Building Docker image -----
-    
-    This command will now build a local docker image for source code
-    using the Dockerfile in the drupal root
-    
-    Image: ${IMAGENAME}
-    
-    
-    	"
-    
-    	# run the docker build
-    	echo "--> building docker image for source code [production safe]"
-    	(sudo docker build --tag "${IMAGENAME}" "${DRUPALROOT}")
-    	echo "--> image build: ${IMAGENAME}"
-    
-    fi
-    
-    ##### PUSH IMAGE TO DOCKER REPOSITORY #########################################
-    
-    
-    if [ "${RUN_IMAGEPUSH}" = "yes" ];then
-    
-    	echo "----- Pushing Docker image -----"
-    
-    	echo ">> Logging into docker repository: ${DOCKERREPO}"
-    	sudo docker login "${DOCKERREPO}"
-    
-    	# run the docker build
-    	(sudo docker push "${IMAGENAME}")
-    	echo "--> image pushed: ${IMAGENAME}"
-    
-    fi
-    
-    echo ">> Build is finished"
-        
         
 - Type: File
   path: .radi/tools/wundertools/radify.sh
@@ -190,7 +63,7 @@
     # This script should be run in the root of a wundertools project.
     #
     
-    INIT_PATHS="https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/init.yml"
+    [ -z "${INIT_PATHS}" ] && INIT_PATHS="https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/init.yml"
     
     echo "##### RADIFY YOUR WUNDERTOOLS #####
     
@@ -205,14 +78,13 @@
     
     The process is primarily template driven.
     
-    The answers to the questions asked may modify which templates are used, but 
-    they are primarily used to provide string substitutions for the templates,
-    and to allow you to control what actions the script will take.
+    The script will download some templates into your project, and ask some 
+    questions. The answers to the questions asked may modify which templates are 
+    used, but they are primarily used to provide string substitutions for the 
+    templates, and to allow you to control what actions the script will take.
     
     This script should have been run/downloaded as: 
       https://github.com/wunderkraut/radi-project-wundertoolswrapper/blob/master/.radi/tools/wundertools/radify.sh
-    or the gist:
-      https://gist.github.com/james-nesbitt/7ebf7337cbfa3f2eef69a59f05fbfc50
     
     #### Running radification
     
@@ -332,6 +204,132 @@
     esac
         
 - Type: File
+  path: .radi/tools/wundertools/client-docker-image.sh
+  Contents: |2
+    #!/bin/sh
+    ##########
+    #
+    # Build the project source code:
+    #   - build a docker image with web source
+    #
+    # Usage:
+    #   --no-composer : don't run the composer part of the build (just build the image)
+    #   --composer-update : run composer update instead of just composer install
+    #   --no-image-build : don't build the docker image (just run composer)
+    #   --push-image : docker push the image
+    #
+    
+    echo "----------------------------------------------
+    WunderTools -> Radi build handler
+    "
+    
+    export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/app/bin:/app/vendor/bin:/app/.composer/vendor/bin"
+    
+    ##### Interpret arguments #####################################################
+    
+    sflag="-s"
+    for arg in "$@"
+    do
+    	case "$arg" in
+    
+    	--run-buildsh)
+    		echo " -> ENABLING BUILD.SH RUN"
+    		RUN_BUILDSH="yes"
+    		;;
+    
+    	--no-image-build)
+    		echo " -> DISABLING DOCKER IMAGE BUILD"
+    		RUN_IMAGEBUILD="no"
+    		;;
+    
+    	--push-image)
+    		echo " -> PUSHING DOCKER IMAGE BUILD"
+    		RUN_IMAGEPUSH="yes"
+    		;;
+    
+    	esac
+    done
+    
+    echo " "
+    
+    ##### Some configurations #####################################################
+    
+    PROJECT="${PROJECT:-wundertools}"
+    
+    DOCKERREPO="${DOCKERREPO:-quay.io/}"
+    IMAGEROOT="${IMAGEROOT:-wunder/project-}"
+    [ -z "${IMAGENAME}" ] && IMAGENAME="${DOCKERREPO}${IMAGEROOT}${PROJECT}-source"
+    
+    PROJECTROOT="${PROJECTROOT:-/app/project}"
+    [ -z "${DRUPALROOT}" ] && DRUPALROOT="${PROJECTROOT}/drupal"
+    
+    RUN_BUILDSH="${RUN_BUILDSH:-no}"
+    RUN_IMAGEBUILD="${RUN_IMAGEBUILD:-yes}"
+    RUN_IMAGEPUSH="${RUN_IMAGEPUSH:-no}"
+    
+    COMPOSER_COMMAND="${COMPOSER_COMMAND:-install}"
+    
+    ##### BUILD PROJECT SOURCE ####################################################
+    
+    if [ "${RUN_BUILDSH}" = "yes" ]; then
+    
+    	echo "----- Using build.sh generate full project source -----
+    
+    Now using the drupal/build.sh to generate source.
+    
+    Note that we have no need of generating source on the host, but we do 
+    so in order to give local developers access to source code for code editor
+    compatibility.
+    
+    	"
+    
+    	(
+    		cd "${DRUPALROOT}"
+    		./build.sh -c conf/site.radi.yml -o conf/commands.radi-initialize.yml new
+    	)
+    
+    fi
+    
+    ##### BUILD SOURCE CODE IMAGE #################################################
+    
+    if [ "${RUN_IMAGEBUILD}" = "yes" ];then
+    
+    	echo "----- Building Docker image -----
+    
+    This command will now build a local docker image for source code
+    using the Dockerfile in the drupal root
+    
+    Image: ${IMAGENAME}
+    
+    
+    	"
+    
+    	# run the docker build
+    	echo "--> building docker image for source code [production safe]"
+    	(sudo docker build --tag "${IMAGENAME}" "${DRUPALROOT}")
+    	echo "--> image build: ${IMAGENAME}"
+    
+    fi
+    
+    ##### PUSH IMAGE TO DOCKER REPOSITORY #########################################
+    
+    
+    if [ "${RUN_IMAGEPUSH}" = "yes" ];then
+    
+    	echo "----- Pushing Docker image -----"
+    
+    	echo ">> Logging into docker repository: ${DOCKERREPO}"
+    	sudo docker login "${DOCKERREPO}"
+    
+    	# run the docker build
+    	(sudo docker push "${IMAGENAME}")
+    	echo "--> image pushed: ${IMAGENAME}"
+    
+    fi
+    
+    echo ">> Build is finished"
+    
+- Type: File
   path: .radi/commands.yml
   Contents: |2
     
@@ -340,7 +338,8 @@
     # Give a ZSH tool shell with access to the project containers
     #
     shell:
-      description: Give a command shell, with access to the application
+      Description: Give a command shell, with access to the application
+    
       tty: true
       image: quay.io/wunder/fuzzy-alpine-devshell
       hostname: "shell"
@@ -360,26 +359,27 @@
         - www:www.app
     
     build.sh:
-      description: Run the Drupal Build.sh
+      Description: Run the Drupal Build.sh
+    
       image: quay.io/wunder/fuzzy-alpine-devshell
       hostname: "build"
       working_dir: /app/project/drupal
-      environment:
-        PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/app/bin:/app/vendor/bin:/app/.composer/vendor/bin"
       entrypoint:
+        - /bin/zsh
         - ./build.sh
         - "--config=conf/site.radi.yml"
       volumes:
         - "./:/app/project"
     
         - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro" 
+        - "~/.ssh:/app/.ssh:ro"
       links:
         - db:db.app
     
     build-image:
+      Description: Build the source code image
+    
       privileged: true
-      description: Build the source code image
       image: quay.io/wunder/fuzzy-alpine-devshell
       hostname: "build"
       working_dir: /app/project/
@@ -388,21 +388,20 @@
         PROJECTROOT: "/app/project"
         DOCKERREPO: "quay.io/"
       entrypoint:
-        - /bin/sh
-        - /app/build.sh
-        - --no-buildsh
+        - /bin/zsh
+        - /app/project/.radi/tools/wundertools/client-docker-image.sh
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
     
         - "./:/app/project"
-        - ".radi/tools/wundertools/build.sh:/app/build.sh"
     
         - "~/.gitconfig:/app/.gitconfig:ro"
         - "~/.ssh:/app/.ssh:ro"
     
     # Drupal Console
     drupal:
-      description: Run drupal console on the application
+      Description: Run drupal console on the application
+    
       image: quay.io/wunder/fuzzy-alpine-devshell
       working_dir: /app/web
       entrypoint:
@@ -413,8 +412,8 @@
         - assets
       volumes:
         - "./backup:/app/backup"
-        - "./settings/drush:/app/.drush"
-        - "./settings/drupal-console:/app/.drupal"
+        # - "./settings/drush:/app/.drush"
+        # - "./settings/drupal-console:/app/.drupal"
         - "./source/drupal/conf/composer.json:/app/.composer.json"
         - "./source/drupal/conf/composer.lock:/app/.composer.lock"
     
@@ -425,7 +424,9 @@
     
     # Drupal Console
     drush:
-      description: Run drush on the application
+      Description: Run drush on the application
+    
+      tty: true
       image: quay.io/wunder/fuzzy-alpine-devshell
       working_dir: /app/web
       entrypoint:
@@ -436,7 +437,7 @@
         - assets
       volumes:
         - "./backup:/app/backup"
-        - "./settings/drush:/app/.drush"
+        # - "./settings/drush:/app/.drush"
     
         - "~/.gitconfig:/app/.gitconfig:ro"
         - "~/.ssh:/app/.ssh:ro"
@@ -447,30 +448,10 @@
   path: .radi/environments/initializer/commands.yml
   Contents: |2
     initialize:
-      description: Initialize the application as a WT wrapped RADI app
+      Description: Initialize the application as a WT wrapped RADI app
+    
       privileged: true
       description: Build the source code image
-      image: quay.io/wunder/fuzzy-alpine-devshell
-      hostname: "build"
-      working_dir: /app/project/
-      environment:
-        PROJECT: "wtest"
-        PROJECTROOT: "/app/project"
-        DOCKERREPO: "quay.io/"
-      entrypoint:
-        - /bin/sh
-        - /app/build.sh
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-    
-        - "./:/app/project"
-        - ".radi/tools/wundertools/build.sh:/app/build.sh"
-    
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
-    
-    build-source:
-      description: Build the WT application source code
       image: quay.io/wunder/fuzzy-alpine-devshell
       hostname: "build"
       working_dir: /app/project/
@@ -479,121 +460,97 @@
         PROJECTROOT: "/app/project"
         DOCKERREPO: "quay.io/"
       entrypoint:
-        - /bin/sh
-        - /app/build.sh
+        - /bin/zsh
+        - /app/project/.radi/tools/wundertools/client-docker-image.sh
+        - --run-buildsh
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+    
+        - "./:/app/project"
+    
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
+    
+    build-source:
+      Description: Build the WT application source code
+    
+      image: quay.io/wunder/fuzzy-alpine-devshell
+      hostname: "build"
+      working_dir: /app/project/
+      environment:
+        PROJECT: "%PROJECT%"
+        PROJECTROOT: "/app/project"
+        DOCKERREPO: "quay.io/"
+      entrypoint:
+        - /bin/zsh
+        - /app/project/.radi/tools/wundertools/client-docker-image.sh
+        - --run-buildsh
         - --no-image-build
       volumes:
         - "./:/app/project"
-        - ".radi/tools/wundertools/build.sh:/app/build.sh"
     
         - "~/.gitconfig:/app/.gitconfig:ro"
         - "~/.ssh:/app/.ssh:ro"
     
     build-image:
+      Description: Build the source code image
+    
       privileged: true
-      description: Build the source code image
       image: quay.io/wunder/fuzzy-alpine-devshell
       hostname: "build"
       working_dir: /app/project/
       environment:
-        PROJECT: "wtest"
+        PROJECT: "%PROJECT%"
         PROJECTROOT: "/app/project"
         DOCKERREPO: "quay.io/"
       entrypoint:
-        - /bin/sh
-        - /app/build.sh
-        - --no-buildsh
+        - /bin/zsh
+        - /app/project/.radi/tools/wundertools/client-docker-image.sh
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
     
         - "./:/app/project"
-        - ".radi/tools/wundertools/build.sh:/app/build.sh"
     
         - "~/.gitconfig:/app/.gitconfig:ro"
         - "~/.ssh:/app/.ssh:ro"
-        
+    
+    build.sh:
+      Description: Run the Drupal Build.sh
+    
+      image: quay.io/wunder/fuzzy-alpine-devshell
+      hostname: "build"
+      working_dir: /app/project/drupal
+      entrypoint:
+        - /bin/zsh
+        - ./build.sh
+        - "--config=conf/site.radi.yml"
+      volumes:
+        - "./:/app/project"
+    
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
+    
+    # Override other commands to disable them
+
+    shell:
+      Internal: true
+    drupal:
+      Internal: true
+    drush:
+      Internal: true    
 - Type: File
-  path: README.md
+  path: .radi/environments/initializer/project.yml
   Contents: |2
-    # radi WT wrapper
+    Components:
     
-    This is a radi init template that can be used to make an existing wundertools
-    project work with radi.
+      # Base implmentation is a local project
+      - Type: local
+        Implementations:
+          - config
+          - setting
+          - command
+          - security
     
-    Using the template, you can add the needed files to any wundertools project,
-    and run a few commands to add the needed docker/radi infrastructure to use
-    radi right away.
-    
-    ## What is added
-    
-    ### a number of files used to configure radi
-    
-    
-    1. standard docker local environment configuration:
-    
-       docker-compose.yml : compose file for a project
-    
-       drupal/Dockerfile : source code image build instructions
-    
-    2. some base radi settings in .radi
-    
-        project.yml : project settings
-        authorize.yml : pretty lenient permissions set
-        commands.yml : common local project commands (plus an additional command mentioned below)
-    
-    3. some radi commands for the new 'initialize' envirnment:
-    
-       `radi --environment=initialize build-source` : build source code without a db
-    
-       `radi --environment=initialize build-image` : build a source docker image
-    
-    4. a radi command to use build.sh in a running project (requires db container is running)
-    
-       `radi build.sh -- <build.sh options here>` : run build.sh
-    
-    5. some wundertools overrides:
-    
-       commands.radi-initialize.yml : define a command set used in the radi initialize environment
-    
-       site.radi.yml : local site settings for use with radi
-    
-    
-    ## How to use it:
-    
-    Before you try to use this, you will need to install the radi-cli (https://github.com/wunderkraut/radi-cli)
-    
-    ### Manually
-    
-    Then you can simple follow these 2 steps:
-    
-    #### 1. In any wundertools D8 project root, use the init.yml from this repository
-    
-    run:
-    
-    ```
-    $/> radi local.project.create --project.create.source https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/init.yml
-    ```
-    
-    This should add the needed files.
-    
-    #### 2. Change some settings
-    
-    The only setting that needs assignment can be done by string replacing %PROJECT% 
-    across all of the added files with a string name for the project.
-    
-    This will likey be automated next, but there are only a few instances, so it is usable
-    already.
-    
-    ### Automatically
-    
-    You can use our script installer directly to perform that above steps.
-    
-    ```
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/radify-script/.radi/tools/wundertools/radify.sh)"
-    ```
-    
-    This script is not necessary, it just tries to make things a bit easier.
-        
 - Type: File
   path: drupal/conf/radi.services.yml
   Contents: |2
@@ -606,8 +563,7 @@
     services:
       cache.backend.null:
         class: Drupal\Core\Cache\NullBackendFactory
-        
-        
+    
 - Type: File
   path: drupal/conf/commands.radi-initialize.yml
   Contents: |2
@@ -623,55 +579,10 @@
     #
     new:
       - make
-    
-      - shell: mkdir -p current/web/modules/custom
-      - shell: mkdir -p current/web/themes/custom
-      - shell: mkdir -p current/web/profiles/custom
-      - shell: mkdir -p current/web/libraries/custom
-      - shell: mkdir -p current/web/sites/default/files
-    
       - backup
       - finalize
       - cleanup
-        
-- Type: File
-  path: drupal/conf/site.radi.yml
-  Contents: |2
-    ---
-    # Site.yml for use with radi
     
-    default:
-    
-      type: composer
-    
-      temporary: _build
-    
-      # Specify Drupal version
-      drupal_version: d8
-    
-      # The final produced Drupal installation
-      final: current
-    
-      # The Subpath of "final" and "temporary" where drupal resides.
-      drupal_subpath: /web
-      # Directory which will house all the previous builds
-      previous: builds
-    
-      # Installation profile to use
-      profile: config_installer
-    
-      # Site name given at installation phase
-      site: %PROJECT%
-    
-      copy:
-        - conf/composer.json: composer.json
-        - conf/composer.lock: composer.lock     
-        - conf/services.yml: web/sites/default/services.yml
-        - conf/settings.php: web/sites/default/settings.php
-        - conf/radi.settings.php: web/sites/default/settings.local.php
-        - conf/radi.services.yml: web/sites/default/services.local.yml
-        - conf/_ping.php: web/_ping.php
-        
 - Type: File
   path: drupal/conf/radi.settings.php
   Contents: |2
@@ -780,6 +691,44 @@
         
         
 - Type: File
+  path: drupal/conf/site.radi.yml
+  Contents: |2
+    ---
+    # Site.yml for use with radi
+    
+    default:
+    
+      type: composer
+    
+      temporary: _build
+    
+      # Specify Drupal version
+      drupal_version: d8
+    
+      # The final produced Drupal installation
+      final: current
+    
+      # The Subpath of "final" and "temporary" where drupal resides.
+      drupal_subpath: /web
+      # Directory which will house all the previous builds
+      previous: builds
+    
+      # Installation profile to use
+      profile: config_installer
+    
+      # Site name given at installation phase
+      site: %PROJECT%
+    
+      copy:
+        - conf/composer.json: composer.json
+        - conf/composer.lock: composer.lock     
+        - conf/services.yml: web/sites/default/services.yml
+        - conf/settings.php: web/sites/default/settings.php
+        - conf/radi.settings.php: web/sites/default/settings.local.php
+        - conf/radi.services.yml: web/sites/default/services.local.yml
+        - conf/_ping.php: web/_ping.php
+        
+- Type: File
   path: drupal/Dockerfile
   Contents: |2
     # Wundertools Wrapper Docker build file
@@ -791,19 +740,38 @@
     FROM quay.io/wunder/fuzzy-alpine-base:v3.4
     MAINTAINER james.nesbitt@wunder.io
     
+    USER app
+    
     # Add core source
     ADD current/web /app/web
     ADD current/vendor /app/vendor
     
-    # Now it appears that drupal console wants to see composer files.
-    ADD conf/composer.json /app/composer.json
-    ADD conf/composer.lock /app/composer.lock
+    # clear out the space for custom code
+    # WT users like to symlink this stuff in, but for us sym-links
+    # are files, and we need to map folders.
+    # we also have to fix some of the permissions changes that build.sh
+    # has applied.
+    USER root
+    RUN chown -R app:app /app/web && \
+    	rm -rf /app/web/modules/custom && \
+    	rm -rf /app/web/themes/custom && \
+    	rm -rf /app/web/profiles/custom && \
+    	rm -rf /app/config
+    USER app
+    RUN mkdir -p /app/web/modules/custom && \
+    	mkdir -p /app/web/themes/custom && \
+    	mkdir -p /app/web/profiles/custom && \
+    	mkdir -p /app/config && \
+    	mkdir -p /app/.drush
     
     # Add project code and conf
     ADD code/modules/custom /app/web/modules/custom
     ADD code/themes/custom /app/web/themes/custom
     #ADD code/profiles/custom /app/web/profiles/custom
-    #ADD code/libraries/custom /app/web/libraries/custom
+    
+    # Now it appears that drupal console wants to see composer files.
+    ADD conf/composer.json /app/composer.json
+    ADD conf/composer.lock /app/composer.lock
     
     # Add in Drupal config
     ADD sync /app/config
@@ -813,6 +781,7 @@
     ADD conf/settings.php /app/web/sites/default/settings.php
     ADD conf/radi.settings.php /app/web/sites/default/settings.local.php
     ADD conf/radi.services.yml /app/web/sites/default/services.local.yml
+    ADD conf/wundertools.aliases.drushrc.php /app/.drush/wundertools.aliases.drushrc.php
         
 - Type: File
   path: docker-compose.yml
@@ -875,7 +844,7 @@
           - source
           - assets
         environment:
-          DNSDOCK_ALIAS: fpm.wtest.docker
+          DNSDOCK_ALIAS: fpm.%PROJECT%.docker
         links:
           - db:db.app
           - memcache:memcached.app
@@ -891,7 +860,7 @@
           - source
           - assets
         environment:
-          DNSDOCK_ALIAS: www.wtest.docker
+          DNSDOCK_ALIAS: www.%PROJECT%.docker
         links:
           - fpm:fpm.app
     
@@ -903,9 +872,8 @@
         ports:
           - 8080:80
         environment:
-          DNSDOCK_ALIAS: wtest.docker
+          DNSDOCK_ALIAS: %PROJECT%.docker
           VARNISH_BACKEND_HOST: backend.app
         links:
           - www:backend.app
-        
         

@@ -4,7 +4,8 @@
 # Give a ZSH tool shell with access to the project containers
 #
 shell:
-  description: Give a command shell, with access to the application
+  Description: Give a command shell, with access to the application
+
   tty: true
   image: quay.io/wunder/fuzzy-alpine-devshell
   hostname: "shell"
@@ -24,26 +25,27 @@ shell:
     - www:www.app
 
 build.sh:
-  description: Run the Drupal Build.sh
+  Description: Run the Drupal Build.sh
+
   image: quay.io/wunder/fuzzy-alpine-devshell
   hostname: "build"
   working_dir: /app/project/drupal
-  environment:
-    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/app/bin:/app/vendor/bin:/app/.composer/vendor/bin"
   entrypoint:
+    - /bin/zsh
     - ./build.sh
     - "--config=conf/site.radi.yml"
   volumes:
     - "./:/app/project"
 
     - "~/.gitconfig:/app/.gitconfig:ro"
-    - "~/.ssh:/app/.ssh:ro" 
+    - "~/.ssh:/app/.ssh:ro"
   links:
     - db:db.app
 
 build-image:
+  Description: Build the source code image
+
   privileged: true
-  description: Build the source code image
   image: quay.io/wunder/fuzzy-alpine-devshell
   hostname: "build"
   working_dir: /app/project/
@@ -52,21 +54,20 @@ build-image:
     PROJECTROOT: "/app/project"
     DOCKERREPO: "quay.io/"
   entrypoint:
-    - /bin/sh
-    - /app/build.sh
-    - --no-buildsh
+    - /bin/zsh
+    - /app/project/.radi/tools/wundertools/client-docker-image.sh
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
 
     - "./:/app/project"
-    - ".radi/tools/wundertools/build.sh:/app/build.sh"
 
     - "~/.gitconfig:/app/.gitconfig:ro"
     - "~/.ssh:/app/.ssh:ro"
 
 # Drupal Console
 drupal:
-  description: Run drupal console on the application
+  Description: Run drupal console on the application
+
   image: quay.io/wunder/fuzzy-alpine-devshell
   working_dir: /app/web
   entrypoint:
@@ -77,8 +78,8 @@ drupal:
     - assets
   volumes:
     - "./backup:/app/backup"
-    - "./settings/drush:/app/.drush"
-    - "./settings/drupal-console:/app/.drupal"
+    # - "./settings/drush:/app/.drush"
+    # - "./settings/drupal-console:/app/.drupal"
     - "./source/drupal/conf/composer.json:/app/.composer.json"
     - "./source/drupal/conf/composer.lock:/app/.composer.lock"
 
@@ -89,7 +90,9 @@ drupal:
 
 # Drupal Console
 drush:
-  description: Run drush on the application
+  Description: Run drush on the application
+
+  tty: true
   image: quay.io/wunder/fuzzy-alpine-devshell
   working_dir: /app/web
   entrypoint:
@@ -100,7 +103,7 @@ drush:
     - assets
   volumes:
     - "./backup:/app/backup"
-    - "./settings/drush:/app/.drush"
+    # - "./settings/drush:/app/.drush"
 
     - "~/.gitconfig:/app/.gitconfig:ro"
     - "~/.ssh:/app/.ssh:ro"

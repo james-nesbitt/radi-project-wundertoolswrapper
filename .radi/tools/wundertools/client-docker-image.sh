@@ -24,18 +24,18 @@ for arg in "$@"
 do
 	case "$arg" in
 
-	--no-buildsh)
-		#echo " -> DISABLING BUILD.SH RUN"
-		RUN_BUILDSH="no"
+	--run-buildsh)
+		echo " -> ENABLING BUILD.SH RUN"
+		RUN_BUILDSH="yes"
 		;;
 
 	--no-image-build)
-		#echo " -> DISABLING DOCKER IMAGE BUILD"
+		echo " -> DISABLING DOCKER IMAGE BUILD"
 		RUN_IMAGEBUILD="no"
 		;;
 
 	--push-image)
-		#echo " -> PUSHING DOCKER IMAGE BUILD"
+		echo " -> PUSHING DOCKER IMAGE BUILD"
 		RUN_IMAGEPUSH="yes"
 		;;
 
@@ -55,7 +55,7 @@ IMAGEROOT="${IMAGEROOT:-wunder/project-}"
 PROJECTROOT="${PROJECTROOT:-/app/project}"
 [ -z "${DRUPALROOT}" ] && DRUPALROOT="${PROJECTROOT}/drupal"
 
-RUN_BUILDSH="${RUN_BUILDSH:-yes}"
+RUN_BUILDSH="${RUN_BUILDSH:-no}"
 RUN_IMAGEBUILD="${RUN_IMAGEBUILD:-yes}"
 RUN_IMAGEPUSH="${RUN_IMAGEPUSH:-no}"
 
@@ -120,4 +120,3 @@ if [ "${RUN_IMAGEPUSH}" = "yes" ];then
 fi
 
 echo ">> Build is finished"
-    

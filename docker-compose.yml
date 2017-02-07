@@ -56,7 +56,7 @@ services:
       - source
       - assets
     environment:
-      DNSDOCK_ALIAS: fpm.wtest.docker
+      DNSDOCK_ALIAS: fpm.%PROJECT%.docker
     links:
       - db:db.app
       - memcache:memcached.app
@@ -72,7 +72,7 @@ services:
       - source
       - assets
     environment:
-      DNSDOCK_ALIAS: www.wtest.docker
+      DNSDOCK_ALIAS: www.%PROJECT%.docker
     links:
       - fpm:fpm.app
 
@@ -84,8 +84,7 @@ services:
     ports:
       - 8080:80
     environment:
-      DNSDOCK_ALIAS: wtest.docker
+      DNSDOCK_ALIAS: %PROJECT%.docker
       VARNISH_BACKEND_HOST: backend.app
     links:
       - www:backend.app
-    

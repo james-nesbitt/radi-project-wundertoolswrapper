@@ -11,7 +11,7 @@
 # This script should be run in the root of a wundertools project.
 #
 
-INIT_PATHS="https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/init.yml"
+[ -z "${INIT_PATHS}" ] && INIT_PATHS="https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/init.yml"
 
 echo "##### RADIFY YOUR WUNDERTOOLS #####
 
@@ -26,14 +26,13 @@ sophisticated, so there is a chance that it will overwrite an existing file.
 
 The process is primarily template driven.
 
-The answers to the questions asked may modify which templates are used, but 
-they are primarily used to provide string substitutions for the templates,
-and to allow you to control what actions the script will take.
+The script will download some templates into your project, and ask some 
+questions. The answers to the questions asked may modify which templates are 
+used, but they are primarily used to provide string substitutions for the 
+templates, and to allow you to control what actions the script will take.
 
 This script should have been run/downloaded as: 
   https://github.com/wunderkraut/radi-project-wundertoolswrapper/blob/master/.radi/tools/wundertools/radify.sh
-or the gist:
-  https://gist.github.com/james-nesbitt/7ebf7337cbfa3f2eef69a59f05fbfc50
 
 #### Running radification
 
