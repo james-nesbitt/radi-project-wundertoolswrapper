@@ -6,4 +6,5 @@ Components:
       - config
       - setting
       - command
+      - project
       - security
