@@ -526,6 +526,7 @@
           - config
           - setting
           - command
+          - project
           - security
         
 - Type: File
@@ -538,7 +539,6 @@
         Implementations:
           - config
           - setting
-          - project
           - security
     
       # Also use the local API for commands and orchestration
