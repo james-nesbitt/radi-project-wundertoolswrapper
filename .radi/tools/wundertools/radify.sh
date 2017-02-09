@@ -83,6 +83,23 @@ if [ -z "${PROJECT}" ]; then
 
 	echo " "
 fi
+if [ -z "${PORTBASE}" ]; then
+	echo "What is a good base port to use?
+
+	   This should be an integer like '80'
+
+	   This will be used as a base port which will be used for nginx & varnish 
+	   services, and mapped locally.
+
+	   If your base port is '80' then your services will be:
+
+	     - varnish : 8080
+	     - nginx   : 8081
+	   "
+	read PORTBASE 
+
+	echo " "
+fi
 
 echo "##### Processing init templates
 
@@ -107,6 +124,8 @@ for INITURL in $INIT_PATHS; do
 
 	echo "  --> replacing Project template variable"
 	sed -i -e "s/\%PROJECT\%/${PROJECT}/g" "${TMPFILE}"
+	echo "  --> replacing base-port template variable"
+	sed -i -e "s/\%PORTBASE\%/${PORTBASE}/g" "${TMPFILE}"
 
 	echo "  --> Running template init:"
 	radi local.project.create --project.create.source "${TMPFILE}"

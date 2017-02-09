@@ -235,6 +235,23 @@
     
     	echo " "
     fi
+    if [ -z "${PORTBASE}" ]; then
+    	echo "What is a good base port to use?
+    
+    	   This should be an integer like '80'
+    
+    	   This will be used as a base port which will be used for nginx & varnish 
+    	   services, and mapped locally.
+    
+    	   If your base port is '80' then your services will be:
+    
+    	     - varnish : 8080
+    	     - nginx   : 8081
+    	   "
+    	read PORTBASE 
+    
+    	echo " "
+    fi
     
     echo "##### Processing init templates
     
@@ -259,6 +276,8 @@
     
     	echo "  --> replacing Project template variable"
     	sed -i -e "s/\%PROJECT\%/${PROJECT}/g" "${TMPFILE}"
+    	echo "  --> replacing base-port template variable"
+    	sed -i -e "s/\%PORTBASE\%/${PORTBASE}/g" "${TMPFILE}"
     
     	echo "  --> Running template init:"
     	radi local.project.create --project.create.source "${TMPFILE}"
@@ -530,6 +549,11 @@
           - security
         
 - Type: File
+  path: .radi/settings.yml
+  Contents: |2
+    Project: "%PROJECT%"
+        
+- Type: File
   path: .radi/project.yml
   Contents: |2
     Components:
@@ -546,12 +570,7 @@
         Implementations:
           - orchestrate
           - command
-    
-- Type: File
-  path: .radi/settings.yml
-  Contents: |2
-    Project: "%PROJECT%"
-    
+        
 - Type: File
   path: drupal/conf/radi.services.yml
   Contents: |2
@@ -873,7 +892,7 @@
       www:
         image: quay.io/wunder/fuzzy-alpine-nginx-pagespeed-drupal
         ports:
-          - 8081:80
+          - "%PORTBASE%81:80"
         volumes_from:
           - source
           - assets
@@ -888,7 +907,7 @@
       varnish:
         image: quay.io/wunder/fuzzy-alpine-varnish
         ports:
-          - 8080:80
+          - "%PORTBASE%80:80"
         environment:
           DNSDOCK_ALIAS: %PROJECT%.docker
           VARNISH_BACKEND_HOST: backend.app
