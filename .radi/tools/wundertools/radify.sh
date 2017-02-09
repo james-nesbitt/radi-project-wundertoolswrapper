@@ -86,12 +86,12 @@ fi
 if [ -z "${PORTBASE}" ]; then
 	echo "What is a good base port to use?
 
-	   This should be an integer like '808'
+	   This should be an integer like '80'
 
 	   This will be used as a base port which will be used for nginx & varnish 
 	   services, and mapped locally.
 
-	   If your base port is '808' then your services will be:
+	   If your base port is '80' then your services will be:
 
 	     - varnish : 8080
 	     - nginx   : 8081
