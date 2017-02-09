@@ -7,36 +7,7 @@ Using the template, you can add the needed files to any wundertools project,
 and run a few commands to add the needed docker/radi infrastructure to use
 radi right away.
 
-## What is added
-
-1. standard docker local environment configuration:
-
-   docker-compose.yml : compose file for a project
-
-   drupal/Dockerfile : source code image build instructions
-
-2. some base radi settings in .radi
-
-    project.yml : project settings
-    authorize.yml : pretty lenient permissions set
-    commands.yml : common local project commands (plus an additional command mentioned below)
-
-3. some radi commands for the new 'initialize' envirnment:
-
-   `radi --environment=initialize build-source` : build source code without a db
-
-   `radi --environment=initialize build-image` : build a source docker image
-
-4. a radi command to use build.sh in a running project (requires db container is running)
-
-   `radi build.sh -- <build.sh options here>` : run build.sh
-
-5. some wundertools overrides:
-
-   commands.radi-initialize.yml : define a command set used in the radi initialize environment
-
-   site.radi.yml : local site settings for use with radi
-
+More details can be found in the [wiki](https://github.com/wunderkraut/radi-project-wundertoolswrapper/wiki)
 
 ## How to use it:
 
