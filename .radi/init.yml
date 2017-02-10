@@ -8,20 +8,6 @@
         Authorize: Allow
         
 - Type: File
-  path: .radi/tools/wundertools/README.md
-  Contents: |2
-    WUNDERTOOLS
-    -----------
-    
-    This folder holds tools that are used to integrate the wundertools projects
-    into the radi implementation.
-    
-    Primarily, the tools exist to build a source code image from the WT project
-    which can then be used by any docker/docker-compose implementation.
-    
-    > See the commands in the .radi/environment/initialize/commands.yml
-        
-- Type: File
   path: .radi/tools/wundertools/client-docker-image.sh
   Contents: |2
     #!/bin/sh
@@ -292,8 +278,23 @@
     
     echo " 
     
-    Intialization complete
+    Initial radification complete
     
+    ##### Project Preparation
+    
+    A few changes need to be made to your project source code in able to make it 
+    compatible with docker and radi:
+    "
+    
+    if [ -d "drupal/files" ]; then
+    
+    	echo "  --> making file folder group writeable "
+    	chmod g+w "drupal/files"
+    
+    fi
+    
+    
+    echo "
     ##### Finalization
     
     Now that the project initialization is complete, you should be able to run radi'
