@@ -345,11 +345,11 @@
         - source
         - assets
       volumes:
-        - "!:/app/pwd:Z"
-        - "./:/app/project:Z"
+        - "!:/app/pwd"
+        - "./:/app/project"
     
-        - "~/.gitconfig:/app/.gitconfig:ro,Z"
-        - "~/.ssh:/app/.ssh:ro,Z"
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
       links:
         - db:db.app
         - fpm:fpm.app
@@ -367,10 +367,10 @@
         - ./build.sh
         - "--config=conf/site.radi.yml"
       volumes:
-        - "./:/app/project:Z"
+        - "./:/app/project"
     
-        - "~/.gitconfig:/app/.gitconfig:ro,Z"
-        - "~/.ssh:/app/.ssh:ro,Z"
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
       links:
         - db:db.app
     
@@ -391,10 +391,10 @@
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
     
-        - "./:/app/project:Z"
+        - "./:/app/project"
     
-        - "~/.gitconfig:/app/.gitconfig:ro,Z"
-        - "~/.ssh:/app/.ssh:ro,Z"
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
     
     # Drupal Console
     drupal:
@@ -409,14 +409,14 @@
         - source
         - assets
       volumes:
-        - "./backup:/app/backup:Z"
-        # - "./settings/drush:/app/.drush:Z"
-        # - "./settings/drupal-console:/app/.drupal:Z"
-        - "./source/drupal/conf/composer.json:/app/.composer.json:Z"
-        - "./source/drupal/conf/composer.lock:/app/.composer.lock:Z"
+        - "./backup:/app/backup"
+        # - "./settings/drush:/app/.drush"
+        # - "./settings/drupal-console:/app/.drupal"
+        - "./source/drupal/conf/composer.json:/app/.composer.json"
+        - "./source/drupal/conf/composer.lock:/app/.composer.lock"
     
-        - "~/.gitconfig:/app/.gitconfig:ro,Z"
-        - "~/.ssh:/app/.ssh:ro,Z"
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
       links:
         - db:db.app
     
@@ -434,11 +434,11 @@
         - source
         - assets
       volumes:
-        - "./backup:/app/backup:Z"
-        # - "./settings/drush:/app/.drush:Z"
+        - "./backup:/app/backup"
+        # - "./settings/drush:/app/.drush"
     
-        - "~/.gitconfig:/app/.gitconfig:ro,Z"
-        - "~/.ssh:/app/.ssh:ro,Z"
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
       links:
         - db:db.app
         
@@ -478,10 +478,10 @@
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
     
-        - "./:/app/project:Z"
+        - "./:/app/project"
     
-        - "~/.gitconfig:/app/.gitconfig:ro,Z"
-        - "~/.ssh:/app/.ssh:ro,Z"
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
     
     build-source:
       Description: Build the WT application source code
@@ -499,10 +499,10 @@
         - --run-buildsh
         - --no-image-build
       volumes:
-        - "./:/app/project:Z"
+        - "./:/app/project"
     
-        - "~/.gitconfig:/app/.gitconfig:ro,Z"
-        - "~/.ssh:/app/.ssh:ro,Z"
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
     
     build-image:
       Description: Build the source code image
@@ -521,10 +521,10 @@
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
     
-        - "./:/app/project:Z"
+        - "./:/app/project"
     
-        - "~/.gitconfig:/app/.gitconfig:ro,Z"
-        - "~/.ssh:/app/.ssh:ro,Z"
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
     
     build.sh:
       Description: Run the Drupal Build.sh
@@ -539,10 +539,10 @@
         - "--config=conf/site.radi.yml"
         - "--commands=conf/commands.radi-initialize.yml"
       volumes:
-        - "./:/app/project:Z"
+        - "./:/app/project"
     
-        - "~/.gitconfig:/app/.gitconfig:ro,Z"
-        - "~/.ssh:/app/.ssh:ro,Z"
+        - "~/.gitconfig:/app/.gitconfig:ro"
+        - "~/.ssh:/app/.ssh:ro"
     
     # Override other commands to disable them
     
@@ -900,14 +900,14 @@
           - /bin/true
         volumes:
           # bind in the web and vendor in case the dev makes changes
-          - "./drupal/current/web:/app/web:z"
-          - "./drupal/current/vendor:/app/vendor:z"
+          - "./drupal/current/web:/app/web"
+          - "./drupal/current/vendor:/app/vendor"
           # override local source.
-          - "./drupal/sync:/app/config:z"
-          - "./drupal/code/modules/custom:/app/web/modules/custom:z"
-          - "./drupal/code/themes/custom:/app/web/themes/custom:z"
-          # - "./drupal/code/profiles/custom:/app/web/profiles/custom:z"
-          # - "./drupal/code/libraries/custom:/app/web/libraries/custom:z"
+          - "./drupal/sync:/app/config"
+          - "./drupal/code/modules/custom:/app/web/modules/custom"
+          - "./drupal/code/themes/custom:/app/web/themes/custom"
+          # - "./drupal/code/profiles/custom:/app/web/profiles/custom"
+          # - "./drupal/code/libraries/custom:/app/web/libraries/custom"
     
       assets:
         image: quay.io/wunder/fuzzy-alpine-base
@@ -916,8 +916,8 @@
         volumes:
           # Keep assets outside of the image, you could map these to
           # local paths if you want to keep assets locally.
-          - "/app/web/sites/default/files:z"
-          #- "/app/private:z"
+          - "/app/web/sites/default/files"
+          #- "/app/private"
     
       ####
       # Servers
