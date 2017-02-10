@@ -140,7 +140,7 @@ done
 
 echo " 
 
-Initial radifcation complete
+Initial radification complete
 
 ##### Project Preparation
 
