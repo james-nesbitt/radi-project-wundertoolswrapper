@@ -18,6 +18,22 @@ More details can be found in the [wiki](https://github.com/wunderkraut/radi-proj
 
 Before you try to use this, you will need to install the radi-cli (https://github.com/wunderkraut/radi-cli)
 
+### Automatically
+
+You can use our script installer directly to perform that above steps.
+
+This script can be found in this repo `.radi/tools/wundertools/radify.sh`
+
+`https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/tools/wundertools/radify.sh`
+
+You can download that script to your project root, or just run it directly:
+
+```
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/tools/wundertools/radify.sh)"
+```
+
+This script is not necessary, it just tries to make things a bit easier.  If you don't like running random internet scripts, take a look at out manual steps desribed below.
+
 ### Manually
 
 Then you can simple follow these 2 steps:
@@ -39,19 +55,3 @@ across all of the added files with a string name for the project.
 
 This will likey be automated next, but there are only a few instances, so it is usable
 already.
-
-### Automatically
-
-You can use our script installer directly to perform that above steps.
-
-This script can be found in this repo `.radi/tools/wundertools/radify.sh`
-
-`https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/tools/wundertools/radify.sh`
-
-You can download that script to your project root, or just run it directly:
-
-```
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/tools/wundertools/radify.sh)"
-```
-
-This script is not necessary, it just tries to make things a bit easier.
