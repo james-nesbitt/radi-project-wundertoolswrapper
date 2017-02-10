@@ -11,7 +11,8 @@ More details can be found in the [wiki](https://github.com/wunderkraut/radi-proj
 
 1. Instructions on how to use the wrapper to radify a project;
 2. Details on how you can use `radi` after you have radified a project;
-3. What is radi?
+3. How you can get involved
+4. What is radi?
 
 ## How to use it:
 
