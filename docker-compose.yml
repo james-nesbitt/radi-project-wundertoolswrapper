@@ -9,14 +9,14 @@ services:
       - /bin/true
     volumes:
       # bind in the web and vendor in case the dev makes changes
-      - "./drupal/current/web:/app/web:z"
-      - "./drupal/current/vendor:/app/vendor:z"
+      - "./drupal/current/web:/app/web"
+      - "./drupal/current/vendor:/app/vendor"
       # override local source.
-      - "./drupal/sync:/app/config:z"
-      - "./drupal/code/modules/custom:/app/web/modules/custom:z"
-      - "./drupal/code/themes/custom:/app/web/themes/custom:z"
-      # - "./drupal/code/profiles/custom:/app/web/profiles/custom:z"
-      # - "./drupal/code/libraries/custom:/app/web/libraries/custom:z"
+      - "./drupal/sync:/app/config"
+      - "./drupal/code/modules/custom:/app/web/modules/custom"
+      - "./drupal/code/themes/custom:/app/web/themes/custom"
+      # - "./drupal/code/profiles/custom:/app/web/profiles/custom"
+      # - "./drupal/code/libraries/custom:/app/web/libraries/custom"
 
   assets:
     image: quay.io/wunder/fuzzy-alpine-base
@@ -25,8 +25,8 @@ services:
     volumes:
       # Keep assets outside of the image, you could map these to
       # local paths if you want to keep assets locally.
-      - "/app/web/sites/default/files:z"
-      #- "/app/private:z"
+      - "/app/web/sites/default/files"
+      #- "/app/private"
 
   ####
   # Servers
