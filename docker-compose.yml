@@ -15,7 +15,7 @@ services:
       - "./drupal/sync:/app/config"
       - "./drupal/code/modules/custom:/app/web/modules/custom"
       - "./drupal/code/themes/custom:/app/web/themes/custom"
-      - "./drupal/code/profiles/custom:/app/web/profiles/custom"
+      # - "./drupal/code/profiles/custom:/app/web/profiles/custom"
       # - "./drupal/code/libraries/custom:/app/web/libraries/custom"
 
   assets:
