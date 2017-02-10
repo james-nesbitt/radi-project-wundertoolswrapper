@@ -168,7 +168,7 @@ case "$YNBUILD" in
 		echo " "
 
 		(
-			radi --environment=initializer initialize -- --run-buildsh
+			radi --environment="initializer" initialize -- --run-buildsh
 		)
 
 		;;
