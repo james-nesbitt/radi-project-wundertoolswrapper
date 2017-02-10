@@ -280,7 +280,11 @@
     	sed -i -e "s/\%PORTBASE\%/${PORTBASE}/g" "${TMPFILE}"
     
     	echo "  --> Running template init:"
-    	radi local.project.create --project.create.source "${TMPFILE}"
+    	(
+    		# the environment flag only makes sense when the prject has already been radified once
+    		# but it doesn't break the 1st time case.
+    		radi --environment="initializer" local.project.create --project.create.source "${TMPFILE}"
+    	)
     
     	rm "${TMPFILE}"
     
@@ -316,7 +320,7 @@
     		echo " "
     
     		(
-    			radi --environment=initializer initialize -- --run-buildsh
+    			radi --environment="initializer" initialize -- --run-buildsh
     		)
     
     		;;
@@ -341,11 +345,11 @@
         - source
         - assets
       volumes:
-        - "!:/app/pwd"
-        - "./:/app/project"
+        - "!:/app/pwd:Z"
+        - "./:/app/project:Z"
     
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
+        - "~/.gitconfig:/app/.gitconfig:ro,Z"
+        - "~/.ssh:/app/.ssh:ro,Z"
       links:
         - db:db.app
         - fpm:fpm.app
@@ -363,10 +367,10 @@
         - ./build.sh
         - "--config=conf/site.radi.yml"
       volumes:
-        - "./:/app/project"
+        - "./:/app/project:Z"
     
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
+        - "~/.gitconfig:/app/.gitconfig:ro,Z"
+        - "~/.ssh:/app/.ssh:ro,Z"
       links:
         - db:db.app
     
@@ -387,10 +391,10 @@
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
     
-        - "./:/app/project"
+        - "./:/app/project:Z"
     
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
+        - "~/.gitconfig:/app/.gitconfig:ro,Z"
+        - "~/.ssh:/app/.ssh:ro,Z"
     
     # Drupal Console
     drupal:
@@ -405,14 +409,14 @@
         - source
         - assets
       volumes:
-        - "./backup:/app/backup"
-        # - "./settings/drush:/app/.drush"
-        # - "./settings/drupal-console:/app/.drupal"
-        - "./source/drupal/conf/composer.json:/app/.composer.json"
-        - "./source/drupal/conf/composer.lock:/app/.composer.lock"
+        - "./backup:/app/backup:Z"
+        # - "./settings/drush:/app/.drush:Z"
+        # - "./settings/drupal-console:/app/.drupal:Z"
+        - "./source/drupal/conf/composer.json:/app/.composer.json:Z"
+        - "./source/drupal/conf/composer.lock:/app/.composer.lock:Z"
     
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
+        - "~/.gitconfig:/app/.gitconfig:ro,Z"
+        - "~/.ssh:/app/.ssh:ro,Z"
       links:
         - db:db.app
     
@@ -430,13 +434,27 @@
         - source
         - assets
       volumes:
-        - "./backup:/app/backup"
-        # - "./settings/drush:/app/.drush"
+        - "./backup:/app/backup:Z"
+        # - "./settings/drush:/app/.drush:Z"
     
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
+        - "~/.gitconfig:/app/.gitconfig:ro,Z"
+        - "~/.ssh:/app/.ssh:ro,Z"
       links:
         - db:db.app
+        
+- Type: File
+  path: .radi/environments/initializer/project.yml
+  Contents: |2
+    Components:
+    
+      # Base implmentation is a local project
+      - Type: local
+        Implementations:
+          - config
+          - setting
+          - command
+          - project
+          - security
         
 - Type: File
   path: .radi/environments/initializer/commands.yml
@@ -460,10 +478,10 @@
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
     
-        - "./:/app/project"
+        - "./:/app/project:Z"
     
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
+        - "~/.gitconfig:/app/.gitconfig:ro,Z"
+        - "~/.ssh:/app/.ssh:ro,Z"
     
     build-source:
       Description: Build the WT application source code
@@ -481,10 +499,10 @@
         - --run-buildsh
         - --no-image-build
       volumes:
-        - "./:/app/project"
+        - "./:/app/project:Z"
     
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
+        - "~/.gitconfig:/app/.gitconfig:ro,Z"
+        - "~/.ssh:/app/.ssh:ro,Z"
     
     build-image:
       Description: Build the source code image
@@ -503,10 +521,10 @@
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
     
-        - "./:/app/project"
+        - "./:/app/project:Z"
     
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
+        - "~/.gitconfig:/app/.gitconfig:ro,Z"
+        - "~/.ssh:/app/.ssh:ro,Z"
     
     build.sh:
       Description: Run the Drupal Build.sh
@@ -521,10 +539,10 @@
         - "--config=conf/site.radi.yml"
         - "--commands=conf/commands.radi-initialize.yml"
       volumes:
-        - "./:/app/project"
+        - "./:/app/project:Z"
     
-        - "~/.gitconfig:/app/.gitconfig:ro"
-        - "~/.ssh:/app/.ssh:ro"
+        - "~/.gitconfig:/app/.gitconfig:ro,Z"
+        - "~/.ssh:/app/.ssh:ro,Z"
     
     # Override other commands to disable them
     
@@ -533,20 +551,7 @@
     drupal:
       Internal: true
     drush:
-      Internal: true    
-- Type: File
-  path: .radi/environments/initializer/project.yml
-  Contents: |2
-    Components:
-    
-      # Base implmentation is a local project
-      - Type: local
-        Implementations:
-          - config
-          - setting
-          - command
-          - project
-          - security
+      Internal: true
         
 - Type: File
   path: .radi/settings.yml
@@ -737,7 +742,7 @@
       profile: config_installer
     
       # Site name given at installation phase
-      site: %PROJECT%
+      site: "%PROJECT%"
     
       #
       # Copy in all the needed code.
@@ -762,6 +767,8 @@
         - files: web/sites/default/files
         - code/modules/custom: web/modules/custom
         - code/themes/custom: web/themes/custom
+        # - code/profiles/custom: web/profiles/custom
+        # - code/libraries/custom: web/libraries/custom
         - sync: sync
         - conf/_ping.php: web/_ping.php
         
@@ -793,11 +800,13 @@
     	rm -rf /app/web/modules/custom && \
     	rm -rf /app/web/themes/custom && \
     	rm -rf /app/web/profiles/custom && \
+    	rm -rf /app/web/libraries/custom && \
     	rm -rf /app/config
     USER app
     RUN mkdir -p /app/web/modules/custom && \
     	mkdir -p /app/web/themes/custom && \
     	mkdir -p /app/web/profiles/custom && \
+    	mkdir -p /app/web/libraries/custom && \
     	mkdir -p /app/config && \
     	mkdir -p /app/.drush
     
@@ -805,6 +814,7 @@
     ADD code/modules/custom /app/web/modules/custom
     ADD code/themes/custom /app/web/themes/custom
     #ADD code/profiles/custom /app/web/profiles/custom
+    #ADD code/libraries/custom /app/web/libraries/custom
     
     # Now it appears that drupal console wants to see composer files.
     ADD conf/composer.json /app/composer.json
@@ -821,6 +831,62 @@
     ADD conf/wundertools.aliases.drushrc.php /app/.drush/wundertools.aliases.drushrc.php
         
 - Type: File
+  path: drupal/site.radi.yml
+  Contents: |2
+    ---
+    # Site.yml for use with radi
+    
+    default:
+    
+      type: composer
+    
+      temporary: _build
+    
+      # Specify Drupal version
+      drupal_version: d8
+    
+      # The final produced Drupal installation
+      final: current
+    
+      # The Subpath of "final" and "temporary" where drupal resides.
+      drupal_subpath: /web
+      # Directory which will house all the previous builds
+      previous: builds
+    
+      # Installation profile to use
+      profile: config_installer
+    
+      # Site name given at installation phase
+      site: %PROJECT%
+    
+      #
+      # Copy in all the needed code.
+      #
+      # @NOTE: docker doesn't need this, we just do it because
+      #   build.sh needs it, primarily to make sure that the
+      #   container paths are created when it does it's composer
+      #   build.
+      # @NOTE we use copy instead of link in order to make the
+      #   paths work well with docker volume mounting (sym-links
+      #   produce files, and we need folders.)  Ignore the static
+      #   files and folders in there for now, as our docker-compose
+      #   will mount the /drupal/code/X into running containers.
+      #
+      copy:
+        - conf/composer.json: composer.json
+        - conf/composer.lock: composer.lock     
+        - conf/services.yml: web/sites/default/services.yml
+        - conf/settings.php: web/sites/default/settings.php
+        - conf/radi.settings.php: web/sites/default/settings.local.php
+        - conf/radi.services.yml: web/sites/default/services.local.yml
+        - files: web/sites/default/files
+        - code/modules/custom: web/modules/custom
+        - code/themes/custom: web/themes/custom
+        - sync: sync
+        - conf/_ping.php: web/_ping.php
+        
+        
+- Type: File
   path: docker-compose.yml
   Contents: |2
     
@@ -834,14 +900,14 @@
           - /bin/true
         volumes:
           # bind in the web and vendor in case the dev makes changes
-          - "./drupal/current/web:/app/web"
-          - "./drupal/current/vendor:/app/vendor"
+          - "./drupal/current/web:/app/web:z"
+          - "./drupal/current/vendor:/app/vendor:z"
           # override local source.
-          - "./drupal/sync:/app/config"
-          - "./drupal/code/modules/custom:/app/web/modules/custom"
-          - "./drupal/code/themes/custom:/app/web/themes/custom"
-          - "./drupal/code/profiles/custom:/app/web/profiles/custom"
-          # - "./drupal/code/libraries/custom:/app/web/libraries/custom"
+          - "./drupal/sync:/app/config:z"
+          - "./drupal/code/modules/custom:/app/web/modules/custom:z"
+          - "./drupal/code/themes/custom:/app/web/themes/custom:z"
+          # - "./drupal/code/profiles/custom:/app/web/profiles/custom:z"
+          # - "./drupal/code/libraries/custom:/app/web/libraries/custom:z"
     
       assets:
         image: quay.io/wunder/fuzzy-alpine-base
@@ -850,8 +916,8 @@
         volumes:
           # Keep assets outside of the image, you could map these to
           # local paths if you want to keep assets locally.
-          - "/app/web/sites/default/files"
-          #- "/app/private"
+          - "/app/web/sites/default/files:z"
+          #- "/app/private:z"
     
       ####
       # Servers

@@ -14,11 +14,11 @@ shell:
     - source
     - assets
   volumes:
-    - "!:/app/pwd"
-    - "./:/app/project"
+    - "!:/app/pwd:Z"
+    - "./:/app/project:Z"
 
-    - "~/.gitconfig:/app/.gitconfig:ro"
-    - "~/.ssh:/app/.ssh:ro"
+    - "~/.gitconfig:/app/.gitconfig:ro,Z"
+    - "~/.ssh:/app/.ssh:ro,Z"
   links:
     - db:db.app
     - fpm:fpm.app
@@ -36,10 +36,10 @@ build.sh:
     - ./build.sh
     - "--config=conf/site.radi.yml"
   volumes:
-    - "./:/app/project"
+    - "./:/app/project:Z"
 
-    - "~/.gitconfig:/app/.gitconfig:ro"
-    - "~/.ssh:/app/.ssh:ro"
+    - "~/.gitconfig:/app/.gitconfig:ro,Z"
+    - "~/.ssh:/app/.ssh:ro,Z"
   links:
     - db:db.app
 
@@ -60,10 +60,10 @@ build-image:
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
 
-    - "./:/app/project"
+    - "./:/app/project:Z"
 
-    - "~/.gitconfig:/app/.gitconfig:ro"
-    - "~/.ssh:/app/.ssh:ro"
+    - "~/.gitconfig:/app/.gitconfig:ro,Z"
+    - "~/.ssh:/app/.ssh:ro,Z"
 
 # Drupal Console
 drupal:
@@ -78,14 +78,14 @@ drupal:
     - source
     - assets
   volumes:
-    - "./backup:/app/backup"
-    # - "./settings/drush:/app/.drush"
-    # - "./settings/drupal-console:/app/.drupal"
-    - "./source/drupal/conf/composer.json:/app/.composer.json"
-    - "./source/drupal/conf/composer.lock:/app/.composer.lock"
+    - "./backup:/app/backup:Z"
+    # - "./settings/drush:/app/.drush:Z"
+    # - "./settings/drupal-console:/app/.drupal:Z"
+    - "./source/drupal/conf/composer.json:/app/.composer.json:Z"
+    - "./source/drupal/conf/composer.lock:/app/.composer.lock:Z"
 
-    - "~/.gitconfig:/app/.gitconfig:ro"
-    - "~/.ssh:/app/.ssh:ro"
+    - "~/.gitconfig:/app/.gitconfig:ro,Z"
+    - "~/.ssh:/app/.ssh:ro,Z"
   links:
     - db:db.app
 
@@ -103,10 +103,10 @@ drush:
     - source
     - assets
   volumes:
-    - "./backup:/app/backup"
-    # - "./settings/drush:/app/.drush"
+    - "./backup:/app/backup:Z"
+    # - "./settings/drush:/app/.drush:Z"
 
-    - "~/.gitconfig:/app/.gitconfig:ro"
-    - "~/.ssh:/app/.ssh:ro"
+    - "~/.gitconfig:/app/.gitconfig:ro,Z"
+    - "~/.ssh:/app/.ssh:ro,Z"
   links:
     - db:db.app
