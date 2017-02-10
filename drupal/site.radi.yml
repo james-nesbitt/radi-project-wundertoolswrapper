@@ -22,7 +22,7 @@ default:
   profile: config_installer
 
   # Site name given at installation phase
-  site: "%PROJECT%"
+  site: %PROJECT%
 
   #
   # Copy in all the needed code.
@@ -47,7 +47,6 @@ default:
     - files: web/sites/default/files
     - code/modules/custom: web/modules/custom
     - code/themes/custom: web/themes/custom
-    # - code/profiles/custom: web/profiles/custom
-    # - code/libraries/custom: web/libraries/custom
     - sync: sync
     - conf/_ping.php: web/_ping.php
+    

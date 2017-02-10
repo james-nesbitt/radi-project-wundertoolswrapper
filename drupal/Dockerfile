@@ -23,11 +23,13 @@ RUN chown -R app:app /app/web && \
 	rm -rf /app/web/modules/custom && \
 	rm -rf /app/web/themes/custom && \
 	rm -rf /app/web/profiles/custom && \
+	rm -rf /app/web/libraries/custom && \
 	rm -rf /app/config
 USER app
 RUN mkdir -p /app/web/modules/custom && \
 	mkdir -p /app/web/themes/custom && \
 	mkdir -p /app/web/profiles/custom && \
+	mkdir -p /app/web/libraries/custom && \
 	mkdir -p /app/config && \
 	mkdir -p /app/.drush
 
@@ -35,6 +37,7 @@ RUN mkdir -p /app/web/modules/custom && \
 ADD code/modules/custom /app/web/modules/custom
 ADD code/themes/custom /app/web/themes/custom
 #ADD code/profiles/custom /app/web/profiles/custom
+#ADD code/libraries/custom /app/web/libraries/custom
 
 # Now it appears that drupal console wants to see composer files.
 ADD conf/composer.json /app/composer.json
