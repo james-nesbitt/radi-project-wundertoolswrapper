@@ -140,8 +140,23 @@ done
 
 echo " 
 
-Intialization complete
+Initial radifcation complete
 
+##### Project Preparation
+
+A few changes need to be made to your project source code in able to make it 
+compatible with docker and radi:
+"
+
+if [ -d "drupal/files" ]; then
+
+	echo "  --> making file folder group writeable "
+	chmod g+w "drupal/files"
+
+fi
+
+
+echo "
 ##### Finalization
 
 Now that the project initialization is complete, you should be able to run radi'

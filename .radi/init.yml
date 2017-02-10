@@ -8,20 +8,6 @@
         Authorize: Allow
         
 - Type: File
-  path: .radi/tools/wundertools/README.md
-  Contents: |2
-    WUNDERTOOLS
-    -----------
-    
-    This folder holds tools that are used to integrate the wundertools projects
-    into the radi implementation.
-    
-    Primarily, the tools exist to build a source code image from the WT project
-    which can then be used by any docker/docker-compose implementation.
-    
-    > See the commands in the .radi/environment/initialize/commands.yml
-        
-- Type: File
   path: .radi/tools/wundertools/client-docker-image.sh
   Contents: |2
     #!/bin/sh
@@ -280,7 +266,11 @@
     	sed -i -e "s/\%PORTBASE\%/${PORTBASE}/g" "${TMPFILE}"
     
     	echo "  --> Running template init:"
-    	radi local.project.create --project.create.source "${TMPFILE}"
+    	(
+    		# the environment flag only makes sense when the prject has already been radified once
+    		# but it doesn't break the 1st time case.
+    		radi --environment="initializer" local.project.create --project.create.source "${TMPFILE}"
+    	)
     
     	rm "${TMPFILE}"
     
@@ -288,8 +278,23 @@
     
     echo " 
     
-    Intialization complete
+    Initial radifcation complete
     
+    ##### Project Preparation
+    
+    A few changes need to be made to your project source code in able to make it 
+    compatible with docker and radi:
+    "
+    
+    if [ -d "drupal/files" ]; then
+    
+    	echo "  --> making file folder group writeable "
+    	chmod g+w "drupal/files"
+    
+    fi
+    
+    
+    echo "
     ##### Finalization
     
     Now that the project initialization is complete, you should be able to run radi'
@@ -316,7 +321,7 @@
     		echo " "
     
     		(
-    			radi --environment=initializer initialize -- --run-buildsh
+    			radi --environment="initializer" initialize -- --run-buildsh
     		)
     
     		;;
@@ -439,6 +444,20 @@
         - db:db.app
         
 - Type: File
+  path: .radi/environments/initializer/project.yml
+  Contents: |2
+    Components:
+    
+      # Base implmentation is a local project
+      - Type: local
+        Implementations:
+          - config
+          - setting
+          - command
+          - project
+          - security
+        
+- Type: File
   path: .radi/environments/initializer/commands.yml
   Contents: |2
     initialize:
@@ -533,20 +552,7 @@
     drupal:
       Internal: true
     drush:
-      Internal: true    
-- Type: File
-  path: .radi/environments/initializer/project.yml
-  Contents: |2
-    Components:
-    
-      # Base implmentation is a local project
-      - Type: local
-        Implementations:
-          - config
-          - setting
-          - command
-          - project
-          - security
+      Internal: true
         
 - Type: File
   path: .radi/settings.yml
@@ -737,7 +743,7 @@
       profile: config_installer
     
       # Site name given at installation phase
-      site: %PROJECT%
+      site: "%PROJECT%"
     
       #
       # Copy in all the needed code.
@@ -762,6 +768,8 @@
         - files: web/sites/default/files
         - code/modules/custom: web/modules/custom
         - code/themes/custom: web/themes/custom
+        # - code/profiles/custom: web/profiles/custom
+        # - code/libraries/custom: web/libraries/custom
         - sync: sync
         - conf/_ping.php: web/_ping.php
         
@@ -793,11 +801,13 @@
     	rm -rf /app/web/modules/custom && \
     	rm -rf /app/web/themes/custom && \
     	rm -rf /app/web/profiles/custom && \
+    	rm -rf /app/web/libraries/custom && \
     	rm -rf /app/config
     USER app
     RUN mkdir -p /app/web/modules/custom && \
     	mkdir -p /app/web/themes/custom && \
     	mkdir -p /app/web/profiles/custom && \
+    	mkdir -p /app/web/libraries/custom && \
     	mkdir -p /app/config && \
     	mkdir -p /app/.drush
     
@@ -805,6 +815,7 @@
     ADD code/modules/custom /app/web/modules/custom
     ADD code/themes/custom /app/web/themes/custom
     #ADD code/profiles/custom /app/web/profiles/custom
+    #ADD code/libraries/custom /app/web/libraries/custom
     
     # Now it appears that drupal console wants to see composer files.
     ADD conf/composer.json /app/composer.json
@@ -819,6 +830,62 @@
     ADD conf/radi.settings.php /app/web/sites/default/settings.local.php
     ADD conf/radi.services.yml /app/web/sites/default/services.local.yml
     ADD conf/wundertools.aliases.drushrc.php /app/.drush/wundertools.aliases.drushrc.php
+        
+- Type: File
+  path: drupal/site.radi.yml
+  Contents: |2
+    ---
+    # Site.yml for use with radi
+    
+    default:
+    
+      type: composer
+    
+      temporary: _build
+    
+      # Specify Drupal version
+      drupal_version: d8
+    
+      # The final produced Drupal installation
+      final: current
+    
+      # The Subpath of "final" and "temporary" where drupal resides.
+      drupal_subpath: /web
+      # Directory which will house all the previous builds
+      previous: builds
+    
+      # Installation profile to use
+      profile: config_installer
+    
+      # Site name given at installation phase
+      site: %PROJECT%
+    
+      #
+      # Copy in all the needed code.
+      #
+      # @NOTE: docker doesn't need this, we just do it because
+      #   build.sh needs it, primarily to make sure that the
+      #   container paths are created when it does it's composer
+      #   build.
+      # @NOTE we use copy instead of link in order to make the
+      #   paths work well with docker volume mounting (sym-links
+      #   produce files, and we need folders.)  Ignore the static
+      #   files and folders in there for now, as our docker-compose
+      #   will mount the /drupal/code/X into running containers.
+      #
+      copy:
+        - conf/composer.json: composer.json
+        - conf/composer.lock: composer.lock     
+        - conf/services.yml: web/sites/default/services.yml
+        - conf/settings.php: web/sites/default/settings.php
+        - conf/radi.settings.php: web/sites/default/settings.local.php
+        - conf/radi.services.yml: web/sites/default/services.local.yml
+        - files: web/sites/default/files
+        - code/modules/custom: web/modules/custom
+        - code/themes/custom: web/themes/custom
+        - sync: sync
+        - conf/_ping.php: web/_ping.php
+        
         
 - Type: File
   path: docker-compose.yml
@@ -840,7 +907,7 @@
           - "./drupal/sync:/app/config"
           - "./drupal/code/modules/custom:/app/web/modules/custom"
           - "./drupal/code/themes/custom:/app/web/themes/custom"
-          - "./drupal/code/profiles/custom:/app/web/profiles/custom"
+          # - "./drupal/code/profiles/custom:/app/web/profiles/custom"
           # - "./drupal/code/libraries/custom:/app/web/libraries/custom"
     
       assets:
