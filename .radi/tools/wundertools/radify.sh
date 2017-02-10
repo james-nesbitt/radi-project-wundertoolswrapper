@@ -128,7 +128,11 @@ for INITURL in $INIT_PATHS; do
 	sed -i -e "s/\%PORTBASE\%/${PORTBASE}/g" "${TMPFILE}"
 
 	echo "  --> Running template init:"
-	radi local.project.create --project.create.source "${TMPFILE}"
+	(
+		# the environment flag only makes sense when the prject has already been radified once
+		# but it doesn't break the 1st time case.
+		radi --environment="initializer" local.project.create --project.create.source "${TMPFILE}"
+	)
 
 	rm "${TMPFILE}"
 
