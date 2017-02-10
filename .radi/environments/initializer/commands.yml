@@ -17,10 +17,10 @@ initialize:
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
 
-    - "./:/app/project"
+    - "./:/app/project:Z"
 
-    - "~/.gitconfig:/app/.gitconfig:ro"
-    - "~/.ssh:/app/.ssh:ro"
+    - "~/.gitconfig:/app/.gitconfig:ro,Z"
+    - "~/.ssh:/app/.ssh:ro,Z"
 
 build-source:
   Description: Build the WT application source code
@@ -38,10 +38,10 @@ build-source:
     - --run-buildsh
     - --no-image-build
   volumes:
-    - "./:/app/project"
+    - "./:/app/project:Z"
 
-    - "~/.gitconfig:/app/.gitconfig:ro"
-    - "~/.ssh:/app/.ssh:ro"
+    - "~/.gitconfig:/app/.gitconfig:ro,Z"
+    - "~/.ssh:/app/.ssh:ro,Z"
 
 build-image:
   Description: Build the source code image
@@ -60,10 +60,10 @@ build-image:
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
 
-    - "./:/app/project"
+    - "./:/app/project:Z"
 
-    - "~/.gitconfig:/app/.gitconfig:ro"
-    - "~/.ssh:/app/.ssh:ro"
+    - "~/.gitconfig:/app/.gitconfig:ro,Z"
+    - "~/.ssh:/app/.ssh:ro,Z"
 
 build.sh:
   Description: Run the Drupal Build.sh
@@ -78,10 +78,10 @@ build.sh:
     - "--config=conf/site.radi.yml"
     - "--commands=conf/commands.radi-initialize.yml"
   volumes:
-    - "./:/app/project"
+    - "./:/app/project:Z"
 
-    - "~/.gitconfig:/app/.gitconfig:ro"
-    - "~/.ssh:/app/.ssh:ro"
+    - "~/.gitconfig:/app/.gitconfig:ro,Z"
+    - "~/.ssh:/app/.ssh:ro,Z"
 
 # Override other commands to disable them
 
