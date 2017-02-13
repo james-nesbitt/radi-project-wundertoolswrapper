@@ -36,7 +36,7 @@ desribed below.
 If you don't like the looks of that automatic method, you can manually perform
 the automated steps.
 
-Then you can simple follow these 2 steps:
+You can simple follow these 2 steps:
 
 #### 1. In any wundertools D8 project root, use the init.yml from this repository
 
