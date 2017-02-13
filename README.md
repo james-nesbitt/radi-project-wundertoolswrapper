@@ -7,7 +7,7 @@ Using the template, you can add the needed files to any wundertools project,
 and run a few commands to get radi to provide commands to manage a local 
 development environment.
 
-More details can be found in the [wiki](https://github.com/wunderkraut/radi-project-wundertoolswrapper/wiki)
+**More details can be found in the [wiki](https://github.com/wunderkraut/radi-project-wundertoolswrapper/wiki)**
 
 1. Instructions on how to use the wrapper to radify a project;
 2. Details on how you can use `radi` after you have radified a project;
