@@ -19,7 +19,7 @@ You can use our script installer directly to perform that above steps.
 
 This script can be found in this repo `.radi/tools/wundertools/radify.sh`
 
-`https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/tools/wundertools/radify.sh`
+( https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/tools/wundertools/radify.sh )
 
 You can download that script to your project root, or just run it directly:
 
