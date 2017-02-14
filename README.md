@@ -7,12 +7,7 @@ Using the template, you can add the needed files to any wundertools project,
 and run a few commands to get radi to provide commands to manage a local 
 development environment.
 
-More details can be found in the [wiki](https://github.com/wunderkraut/radi-project-wundertoolswrapper/wiki)
-
-1. Instructions on how to use the wrapper to radify a project;
-2. Details on how you can use `radi` after you have radified a project;
-3. How you can get involved
-4. What is radi?
+**More details can be found in the [wiki](https://github.com/wunderkraut/radi-project-wundertoolswrapper/wiki)**
 
 ## How to use it:
 
@@ -24,7 +19,7 @@ You can use our script installer directly to perform that above steps.
 
 This script can be found in this repo `.radi/tools/wundertools/radify.sh`
 
-`https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/tools/wundertools/radify.sh`
+( https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/tools/wundertools/radify.sh )
 
 You can download that script to your project root, or just run it directly:
 
@@ -32,11 +27,16 @@ You can download that script to your project root, or just run it directly:
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/wunderkraut/radi-project-wundertoolswrapper/master/.radi/tools/wundertools/radify.sh)"
 ```
 
-This script is not necessary, it just tries to make things a bit easier.  If you don't like running random internet scripts, take a look at out manual steps desribed below.
+This script is not necessary, it just tries to make things a bit easier.  If 
+you don't like running random internet scripts, take a look at out manual steps
+desribed below.
 
 ### Manually
 
-Then you can simple follow these 2 steps:
+If you don't like the looks of that automatic method, you can manually perform
+the automated steps.
+
+You can simple follow these 2 steps:
 
 #### 1. In any wundertools D8 project root, use the init.yml from this repository
 
@@ -50,8 +50,14 @@ This should add the needed files.
 
 #### 2. Change some settings
 
-The only setting that needs assignment can be done by string replacing %PROJECT% 
-across all of the added files with a string name for the project.
+The only setting that needs assignment can be done by string replacing 
+%PROJECT% and %PORTBASE% across all of the added files with a string name for 
+the project.
 
-This will likey be automated next, but there are only a few instances, so it is usable
-already.
+This will likey be automated next, but there are only a few instances, so it is
+usable already.
+
+
+---
+
+More details can be found in the [wiki](https://github.com/wunderkraut/radi-project-wundertoolswrapper/wiki)
