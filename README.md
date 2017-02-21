@@ -9,7 +9,7 @@ development environment.
 
 **More details can be found in the [wiki](https://github.com/wunderkraut/radi-project-wundertoolswrapper/wiki)**
 
-## How to use it:
+## How to add this to an existing project
 
 Before you try to use this, you will need to install the radi-cli (https://github.com/wunderkraut/radi-cli)
 
@@ -57,6 +57,29 @@ the project.
 This will likey be automated next, but there are only a few instances, so it is
 usable already.
 
+## How to use it after integration
+
+Once the project has been intialized, you should be able to use the radi cli tool
+to manage and orchestrate your project as needed.
+
+Most commonly, you will want to run:
+
+```
+$/> radi up
+```
+
+But there are many more commands for shell acces, for drush, for build.sh and 
+more.  To get more help try:
+
+```
+$/> radi
+```
+
+* Note that some commands will only be visible with the initializer environment:
+
+```
+$/> radi --environment=initializer
+```
 
 ---
 
